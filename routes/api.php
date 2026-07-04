@@ -134,14 +134,6 @@ Route::put('/products/{products}', [ProductsController::class, 'update']);
 Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
 
 
-Route::middleware('auth:sanctum')->group(function () {
-
-    Route::get('/products', [ProductsController::class, 'index']);
-    Route::post('/products', [ProductsController::class, 'store']);
-    Route::get('/products/{products}', [ProductsController::class, 'show']);
-    Route::put('/products/{products}', [ProductsController::class, 'update']);
-    Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
-});
 
 
 
@@ -150,11 +142,3 @@ Route::get('/ads/{ads}', [AdsController::class, 'show']);
 Route::post('/ads', [AdsController::class, 'store']);
 Route::put('/ads/{ads}', [AdsController::class, 'update']);
 Route::delete('/ads/{ads}', [AdsController::class, 'destroy']);
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/ads', [AdsController::class, 'index']);
-    Route::get('/ads/{ads}', [AdsController::class, 'show']);
-    Route::post('/ads', [AdsController::class, 'store']);
-    Route::put('/ads/{ads}', [AdsController::class, 'update']);
-    Route::delete('/ads/{ads}', [AdsController::class, 'destroy']);
-});
