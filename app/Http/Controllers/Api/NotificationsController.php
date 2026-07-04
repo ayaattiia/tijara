@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Notifications;
+use Illuminate\Http\Request;
+
+class NotificationsController extends Controller
+{
+    public function index(Request $request)
+    {
+        $perPage = (int) $request->query('per_page', 20);
+        return response()->json(Notifications::paginate($perPage));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->all();
+        $item = Notifications::create($data);
+        return response()->json($item, 201);
+    }
+
+    public function show($notifications)
+    {
+        $item = Notifications::findOrFail($notifications);
+        return response()->json($item);
+    }
+
+    public function update(Request $request, $notifications)
+    {
+        $item = Notifications::findOrFail($notifications);
+        $item->update($request->all());
+        return response()->json($item);
+    }
+
+    public function destroy($notifications)
+    {
+        $item = Notifications::findOrFail($notifications);
+        $item->delete();
+        return response()->json(null, 204);
+    }
+}

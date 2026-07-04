@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\ProductWishlist;
+use Illuminate\Http\Request;
+
+class ProductWishlistController extends Controller
+{
+    public function index(Request $request)
+    {
+        $perPage = (int) $request->query('per_page', 20);
+        return response()->json(ProductWishlist::paginate($perPage));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->all();
+        $item = ProductWishlist::create($data);
+        return response()->json($item, 201);
+    }
+
+    public function show($product_wishlist)
+    {
+        $item = ProductWishlist::findOrFail($product_wishlist);
+        return response()->json($item);
+    }
+
+    public function update(Request $request, $product_wishlist)
+    {
+        $item = ProductWishlist::findOrFail($product_wishlist);
+        $item->update($request->all());
+        return response()->json($item);
+    }
+
+    public function destroy($product_wishlist)
+    {
+        $item = ProductWishlist::findOrFail($product_wishlist);
+        $item->delete();
+        return response()->json(null, 204);
+    }
+}
