@@ -1,6 +1,8 @@
 <?php
 
-use App\Models\User;
+// use App\Models\User;
+use App\Models\Users as User;
+
 
 return [
 
@@ -41,6 +43,10 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+        ],
+          'api' => [
+        'driver' => 'passport',
+        'provider' => 'users',
         ],
     ],
 
