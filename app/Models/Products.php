@@ -30,6 +30,7 @@ class Products extends Model
         'Active'
     ];
 
+
     public function prize()
     {
         return $this->belongsTo(\App\Models\Prizes::class, 'IdPrize', 'idPrize');
@@ -49,5 +50,4 @@ class Products extends Model
     {
         return $this->belongsTo(\App\Models\Countries::class, 'IdCountrie', 'IdCountry');
     }
-
 }

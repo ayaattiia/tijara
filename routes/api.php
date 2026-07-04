@@ -63,6 +63,7 @@ use App\Http\Controllers\Api\WishlistDealsController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+
 // ---- Routes protegees par Passport ----
 Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -71,7 +72,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('ad-comments', AdCommentsController::class);
     Route::apiResource('ad-likes', AdLikesController::class);
     Route::apiResource('admin-settings', AdminSettingsController::class);
-    Route::apiResource('ads', AdsController::class);
+
+
+
     Route::apiResource('ads-wishlist', AdsWishlistController::class);
     Route::apiResource('boost-ads-packs', BoostAdsPacksController::class);
     Route::apiResource('boosts', BoostsController::class);
@@ -123,4 +126,35 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('winners', WinnersController::class);
     Route::apiResource('wishlist-ads', WishlistAdsController::class);
     Route::apiResource('wishlist-deals', WishlistDealsController::class);
+});
+Route::get('/products', [ProductsController::class, 'index']);
+Route::post('/products', [ProductsController::class, 'store']);
+Route::get('/products/{products}', [ProductsController::class, 'show']);
+Route::put('/products/{products}', [ProductsController::class, 'update']);
+Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
+
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/products', [ProductsController::class, 'index']);
+    Route::post('/products', [ProductsController::class, 'store']);
+    Route::get('/products/{products}', [ProductsController::class, 'show']);
+    Route::put('/products/{products}', [ProductsController::class, 'update']);
+    Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
+});
+
+
+
+Route::get('/ads', [AdsController::class, 'index']);
+Route::get('/ads/{ads}', [AdsController::class, 'show']);
+Route::post('/ads', [AdsController::class, 'store']);
+Route::put('/ads/{ads}', [AdsController::class, 'update']);
+Route::delete('/ads/{ads}', [AdsController::class, 'destroy']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/ads', [AdsController::class, 'index']);
+    Route::get('/ads/{ads}', [AdsController::class, 'show']);
+    Route::post('/ads', [AdsController::class, 'store']);
+    Route::put('/ads/{ads}', [AdsController::class, 'update']);
+    Route::delete('/ads/{ads}', [AdsController::class, 'destroy']);
 });

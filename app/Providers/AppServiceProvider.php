@@ -21,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
         $this->routes(function () {
 
             Route::middleware('api')
