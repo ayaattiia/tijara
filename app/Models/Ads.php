@@ -60,5 +60,4 @@ class Ads extends Model
     {
         return $this->belongsTo(\App\Models\TypeCategory::class, 'Idtypecat', 'Idtypecat');
     }
-
 }
