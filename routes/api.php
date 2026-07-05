@@ -135,6 +135,12 @@ Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
 
 
 
+Route::get('/products/search/{search}', [ProductsController::class, 'search']);
+Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCategory']);
+Route::get('/products/user/{IdUser}', [ProductsController::class, 'byUser']);
+Route::get('/products/price/{min_price}/{max_price}', [ProductsController::class, 'byPriceRange']);
+Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);  
+
 
 
 Route::get('/ads', [AdsController::class, 'index']);
