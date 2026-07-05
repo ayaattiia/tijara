@@ -134,17 +134,33 @@ Route::put('/products/{products}', [ProductsController::class, 'update']);
 Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b6042dbb6c37a1b092001f077ae37b5ee6da42dd
 Route::get('/products/search/{search}', [ProductsController::class, 'search']);
 Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCategory']);
 Route::get('/products/user/{IdUser}', [ProductsController::class, 'byUser']);
 Route::get('/products/price/{min_price}/{max_price}', [ProductsController::class, 'byPriceRange']);
+<<<<<<< HEAD
 Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);  
 
 
+=======
+Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);
+>>>>>>> b6042dbb6c37a1b092001f077ae37b5ee6da42dd
 
 Route::get('/ads', [AdsController::class, 'index']);
 Route::get('/ads/{ads}', [AdsController::class, 'show']);
 Route::post('/ads', [AdsController::class, 'store']);
 Route::put('/ads/{ads}', [AdsController::class, 'update']);
 Route::delete('/ads/{ads}', [AdsController::class, 'destroy']);
+
+Route::get('/ads/search/{search}', [AdsController::class, 'search']);
+Route::get('/ads/category/{IdCateg}', [AdsController::class, 'byCategory']);
+Route::get('/ads/typecat/{Idtypecat}', [AdsController::class, 'byTypeCat']);
+Route::get('/ads/state/{IdState}', [AdsController::class, 'byState']);
+Route::get('/ads/country/{IdCountry}', [AdsController::class, 'byCountry']);
+Route::get('/ads/user/{IdUser}', [AdsController::class, 'byUser']);
+Route::get('/ads/price/{min_price}/{max_price}', [AdsController::class, 'byPriceRange']);
+Route::get('/ads/active/{Active}', [AdsController::class, 'byActive']);

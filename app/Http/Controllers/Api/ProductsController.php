@@ -8,44 +8,49 @@ use Illuminate\Http\Request;
 
 class ProductsController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $perPage = (int) $request->query('per_page', 20);
+        $products = Products::with(['user:IdUser,Username,FirstName,LastName,Email,ProfilePicture'])
+            ->paginate(10);
 
-        $query = Products::with(['user:IdUser,Username,FirstName,LastName,Email,ProfilePicture']);
-
-        // ---- Search (by title, description, reference, barcode) ----
-        if ($search = $request->query('search')) {
-            $query->where(function ($q) use ($search) {
+        return response()->json($products);
+    }
+    public function search($search)
+    {
+        $products = Products::with(['user:IdUser,Username,FirstName,LastName,Email,ProfilePicture'])
+            ->where(function ($q) use ($search) {
                 $q->where('TitleProduct', 'like', "%{$search}%")
                     ->orWhere('DescriptionProduct', 'like', "%{$search}%")
                     ->orWhere('ReferenceProduct', 'like', "%{$search}%")
                     ->orWhere('CodeBarProduct', 'like', "%{$search}%");
-            });
-        }
+            })
+            ->paginate(10);
 
-        // ---- Filters ----
-        if ($request->filled('IdCateorie')) {
-            $query->where('IdCateorie', $request->query('IdCateorie'));
-        }
+        return response()->json($products);
+    }
 
-        if ($request->filled('IdUser')) {
-            $query->where('IdUser', $request->query('IdUser'));
-        }
+    public function byCategory($IdCateorie)
+    {
+        $products = Products::where('IdCateorie', $IdCateorie)->paginate(10);
+        return response()->json($products);
+    }
 
-        if ($request->filled('min_price')) {
-            $query->where('PriceProduct', '>=', $request->query('min_price'));
-        }
+    public function byUser($IdUser)
+    {
+        $products = Products::where('IdUser', $IdUser)->paginate(10);
+        return response()->json($products);
+    }
 
-        if ($request->filled('max_price')) {
-            $query->where('PriceProduct', '<=', $request->query('max_price'));
-        }
+    public function byPriceRange($min_price, $max_price)
+    {
+        $products = Products::whereBetween('PriceProduct', [$min_price, $max_price])->paginate(10);
+        return response()->json($products);
+    }
 
-        if ($request->filled('Active')) {
-            $query->where('Active', $request->query('Active'));
-        }
-
-        return response()->json($query->paginate($perPage));
+    public function byActive($Active)
+    {
+        $products = Products::where('Active', $Active)->paginate(10);
+        return response()->json($products);
     }
 
     public function store(Request $request)

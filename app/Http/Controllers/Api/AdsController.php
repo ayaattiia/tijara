@@ -8,55 +8,77 @@ use Illuminate\Http\Request;
 
 class AdsController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        // ---- Pagination ----
-        $perPage = (int) $request->query('per_page', 20);
-        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 20; // borne de sécurité
-
-        // ---- Base query + jointure User (colonnes sensibles déjà cachées via $hidden) ----
-        $query = Ads::with([
-            'user:IdUser,Username,FirstName,LastName,Email,ProfilePicture,IsVerified,City',
+        $ads = Ads::with([
+            'user:IdUser,Username,FirstName,LastName,Email,ProfilePicture',
             'categ',
             'state',
             'country'
-        ]);
+        ])->paginate(10);
 
-        // ---- Recherche texte (search) ----
-        if ($search = $request->query('search')) {
-            $query->where(function ($q) use ($search) {
+        return response()->json($ads);
+    }
+
+    public function search($search)
+    {
+        $ads = Ads::with([
+            'user:IdUser,Username,FirstName,LastName,Email,ProfilePicture',
+            'categ',
+            'state',
+            'country'
+        ])
+            ->where(function ($q) use ($search) {
                 $q->where('TitleAd', 'like', "%{$search}%")
                     ->orWhere('DescriptionAd', 'like', "%{$search}%")
                     ->orWhere('LocationAd', 'like', "%{$search}%")
                     ->orWhere('Brand', 'like', "%{$search}%");
-            });
-        }
+            })
+            ->paginate(10);
 
-        // ---- Filtres ----
-        if ($request->filled('category')) {
-            $query->where('IdCateg', $request->query('category'));
-        }
-        if ($request->filled('typecat')) {
-            $query->where('Idtypecat', $request->query('typecat'));
-        }
-        if ($request->filled('state')) {
-            $query->where('IdState', $request->query('state'));
-        }
-        if ($request->filled('country')) {
-            $query->where('IdCountry', $request->query('country'));
-        }
-        if ($request->filled('user_id')) {
-            $query->where('IdUser', $request->query('user_id'));
-        }
-        if ($request->filled('active')) {
-            $query->where('Active', $request->query('active'));
-        }
-        if ($request->filled('min_price')) {
-            $query->where('PriceAd', '>=', $request->query('min_price'));
-        }
-        if ($request->filled('max_price')) {
-            $query->where('PriceAd', '<=', $request->query('max_price'));
-        }
+        return response()->json($ads);
+    }
+
+    public function byCategory($IdCateg)
+    {
+        $ads = Ads::where('IdCateg', $IdCateg)->paginate(10);
+        return response()->json($ads);
+    }
+
+    public function byTypeCat($Idtypecat)
+    {
+        $ads = Ads::where('Idtypecat', $Idtypecat)->paginate(10);
+        return response()->json($ads);
+    }
+
+    public function byState($IdState)
+    {
+        $ads = Ads::where('IdState', $IdState)->paginate(10);
+        return response()->json($ads);
+    }
+
+    public function byCountry($IdCountry)
+    {
+        $ads = Ads::where('IdCountry', $IdCountry)->paginate(10);
+        return response()->json($ads);
+    }
+
+    public function byUser($IdUser)
+    {
+        $ads = Ads::where('IdUser', $IdUser)->paginate(10);
+        return response()->json($ads);
+    }
+
+    public function byPriceRange($min_price, $max_price)
+    {
+        $ads = Ads::whereBetween('PriceAd', [$min_price, $max_price])->paginate(10);
+        return response()->json($ads);
+    }
+
+    public function byActive($Active)
+    {
+        $ads = Ads::where('Active', $Active)->paginate(10);
+        return response()->json($ads);
     }
 
     public function store(Request $request)
