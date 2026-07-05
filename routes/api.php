@@ -134,21 +134,16 @@ Route::put('/products/{products}', [ProductsController::class, 'update']);
 Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
 
 
-<<<<<<< HEAD
 
-=======
->>>>>>> b6042dbb6c37a1b092001f077ae37b5ee6da42dd
+
 Route::get('/products/search/{search}', [ProductsController::class, 'search']);
 Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCategory']);
 Route::get('/products/user/{IdUser}', [ProductsController::class, 'byUser']);
 Route::get('/products/price/{min_price}/{max_price}', [ProductsController::class, 'byPriceRange']);
-<<<<<<< HEAD
 Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);  
 
 
-=======
 Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);
->>>>>>> b6042dbb6c37a1b092001f077ae37b5ee6da42dd
 
 Route::get('/ads', [AdsController::class, 'index']);
 Route::get('/ads/{ads}', [AdsController::class, 'show']);
