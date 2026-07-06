@@ -12,15 +12,39 @@ class CategoriesController extends Controller
     {
         $perPage = (int) $request->query('per_page', 20);
 
+        $query = Categories::query();
+
         // ?idparent=0 => uniquement les categories principales (racines)
         // ?idparent=5 => uniquement les sous-categories de la categorie 5
         if ($request->has('idparent')) {
-            return response()->json(
-                Categories::where('idparent', $request->query('idparent'))->paginate($perPage)
-            );
+            $query->where('idparent', $request->query('idparent'));
+            // return response()->json(
+            //     Categories::where('idparent', $request->query('idparent'))->paginate($perPage)
+            // );
         }
 
-        return response()->json(Categories::paginate($perPage));
+        if ($request->has('idtypecat')) {
+            $query->where('idtypecat', $request->query('idtypecat'));
+        }
+
+        // ?active=1 ou ?active=0 => filtrer par statut actif/inactif
+        if ($request->has('active')) {
+            $query->where('Active', $request->query('active'));
+        }
+
+        // ?search=telephone => recherche dans TitleEn, TitleFr, TitleAr et Description
+        if ($request->filled('search')) {
+            $term = $request->query('search');
+            $query->where(function ($q) use ($term) {
+                $q->where('TitleEn', 'like', "%{$term}%")
+                    ->orWhere('TitleFr', 'like', "%{$term}%")
+                    ->orWhere('TitleAr', 'like', "%{$term}%")
+                    ->orWhere('Description', 'like', "%{$term}%");
+            });
+        }
+
+        // return response()->json(Categories::paginate($perPage));
+        return response()->json($query->paginate($perPage));
     }
 
     // GET /api/categories-roots : uniquement les categories principales (idparent = 0)
