@@ -79,7 +79,13 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('boost-ads-packs', BoostAdsPacksController::class);
     Route::apiResource('boosts', BoostsController::class);
     Route::apiResource('brands', BrandsController::class);
+
+
+    Route::get('categories-roots', [CategoriesController::class, 'roots']);
+    Route::get('categories/{categories}/children', [CategoriesController::class, 'children']);
     Route::apiResource('categories', CategoriesController::class);
+
+
     Route::apiResource('causes', CausesController::class);
     Route::apiResource('causes-reports', CausesReportsController::class);
     Route::apiResource('chat-messages', ChatMessagesController::class);
@@ -126,19 +132,25 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('winners', WinnersController::class);
     Route::apiResource('wishlist-ads', WishlistAdsController::class);
     Route::apiResource('wishlist-deals', WishlistDealsController::class);
+
+
+
+
+
 });
+
+// ---- Routes publiques (non auth) ----
 Route::get('/products', [ProductsController::class, 'index']);
 Route::post('/products', [ProductsController::class, 'store']);
 Route::get('/products/{products}', [ProductsController::class, 'show']);
 Route::put('/products/{products}', [ProductsController::class, 'update']);
 Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
 
-
 Route::get('/products/search/{search}', [ProductsController::class, 'search']);
 Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCategory']);
 Route::get('/products/user/{IdUser}', [ProductsController::class, 'byUser']);
 Route::get('/products/price/{min_price}/{max_price}', [ProductsController::class, 'byPriceRange']);
-Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);
+Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);  
 
 Route::get('/ads', [AdsController::class, 'index']);
 Route::get('/ads/{ads}', [AdsController::class, 'show']);
