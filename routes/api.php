@@ -79,9 +79,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('boost-ads-packs', BoostAdsPacksController::class);
     Route::apiResource('boosts', BoostsController::class);
     Route::apiResource('brands', BrandsController::class);
-    Route::apiResource('categories', CategoriesController::class);
     Route::get('categories-roots', [CategoriesController::class, 'roots']);
     Route::get('categories/{categories}/children', [CategoriesController::class, 'children']);
+    Route::apiResource('categories', CategoriesController::class);
 
 
     Route::apiResource('causes', CausesController::class);
