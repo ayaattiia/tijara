@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ResetPasswordMail;
+use App\Models\EmailTokens;
 use App\Models\Users;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -77,5 +81,85 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    // POST /api/forgot-password : { "Email": "..." }
+    // Genere un token et envoie un email avec le code de reinitialisation
+    public function forgotPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'Email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = Users::where('Email', $request->Email)->first();
+
+        // Message identique que l'email existe ou non (securite : on ne revele pas
+        // si un email est enregistre ou pas)
+        $genericResponse = response()->json([
+            'message' => 'Si cet email existe, un code de reinitialisation a ete envoye.'
+        ]);
+
+        if (!$user) {
+            return $genericResponse;
+        }
+
+        $token = Str::upper(Str::random(6)); // ex: "A1B2C3"
+
+        EmailTokens::create([
+            'IdUser'    => $user->IdUser,
+            'Token'     => $token,
+            'Type'      => 'password_reset',
+            'ExpiresAt' => now()->addMinutes(60),
+            'Used'      => 0,
+            'CreatedAt' => now(),
+        ]);
+
+        Mail::to($user->Email)->send(new ResetPasswordMail($token, $user->Username));
+
+        return $genericResponse;
+    }
+
+    // POST /api/reset-password : { "Email": "...", "Token": "...", "Password": "...", "Password_confirmation": "..." }
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'Email'                 => 'required|email',
+            'Token'                 => 'required|string',
+            'Password'              => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = Users::where('Email', $request->Email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Requete invalide'], 422);
+        }
+
+        $tokenRecord = EmailTokens::where('IdUser', $user->IdUser)
+            ->where('Token', $request->Token)
+            ->where('Type', 'password_reset')
+            ->where('Used', 0)
+            ->where('ExpiresAt', '>=', now())
+            ->latest('IdToken')
+            ->first();
+
+        if (!$tokenRecord) {
+            return response()->json(['message' => 'Code invalide ou expire'], 422);
+        }
+
+        $user->Password = Hash::make($request->Password);
+        $user->save();
+
+        $tokenRecord->Used = 1;
+        $tokenRecord->save();
+
+        return response()->json(['message' => 'Mot de passe reinitialise avec succes']);
     }
 }

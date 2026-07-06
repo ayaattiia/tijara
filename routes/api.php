@@ -59,10 +59,12 @@ use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
 
+
 // ---- Routes publiques (auth) ----
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // ---- Routes protegees par Passport ----
 Route::middleware('auth:api')->group(function () {
