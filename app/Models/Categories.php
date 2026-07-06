@@ -17,8 +17,25 @@ class Categories extends Model
         'Description',
         'Image',
         'idtypecat',
+        'idparent',
         'Active'
     ];
+    // La categorie parente (idparent = 0 => pas de parent)
+    public function parent()
+    {
+        return $this->belongsTo(Categories::class, 'idparent', 'IdCateg');
+    }
+
+    // Les sous-categories
+    public function children()
+    {
+        return $this->hasMany(Categories::class, 'idparent', 'IdCateg');
+    }
+
+    public function scopeRoots($query)
+    {
+        return $query->where('idparent', 0);
+    }
 
     public function idtypecat()
     {
