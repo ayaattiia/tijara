@@ -942,10 +942,9 @@ ALTER TABLE `Users`
 ALTER TABLE `Wallets`
   ADD CONSTRAINT `FK_Wallets_Users` FOREIGN KEY (`IdUser`) REFERENCES `Users` (`IdUser`);
 
-<<<<<<< HEAD
+
 ALTER TABLE Categories
 ADD COLUMN idparent BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER IdCateg;
-=======
 
 
 
