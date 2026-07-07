@@ -11,7 +11,15 @@ class StatesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(States::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            States::class,
+            ['NameEN', 'NameFR', 'NameAR', 'NameDE', 'NameES', 'NameCH', 'NameRU', 'CodeState', 'CityPostalCode', 'Flag', 'MAP', 'PhoneCode', 'CountriesName'],
+            ['IdCountry', 'Active'],
+            []
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

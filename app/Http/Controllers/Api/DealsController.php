@@ -11,7 +11,15 @@ class DealsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Deals::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Deals::class,
+            ['titleDeal', 'descriptionDeal', 'detailsDeal', 'locationDeal', 'telephone', 'email'],
+            ['imageDeal', 'idtypecat', 'idCateg', 'idUser', 'idState', 'idPrize', 'active', 'colors', 'likes', 'liked', 'ownerdeals', 'brand'],
+            ['priceDeal', 'discountDeal', 'quantity', 'datePublication', 'dateEnd', 'startDate', 'TotalCount']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

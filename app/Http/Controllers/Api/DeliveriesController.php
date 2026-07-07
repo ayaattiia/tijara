@@ -11,7 +11,15 @@ class DeliveriesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Deliveries::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Deliveries::class,
+            ['TrackingNumber', 'AddressLine', 'City', 'PostalCode', 'Phone', 'Note'],
+            ['IdOrder', 'IdTransport', 'Status'],
+            ['DeliveryFee', 'EstimatedAt', 'DeliveredAt', 'CreatedAt', 'UpdatedAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

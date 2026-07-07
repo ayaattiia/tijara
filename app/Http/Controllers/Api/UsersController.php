@@ -12,7 +12,15 @@ class UsersController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Users::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Users::class,
+            ['Username', 'FirstName', 'LastName', 'Email', 'Telephone', 'Location', 'City', 'EmailConfirmed'],
+            ['Gender', 'ICN', 'IdRole', 'FacebookId', 'GoogleId', 'ProfilePicture', 'IsVerified', 'IsPremuim', 'IdentityPicture', 'IsBusinessAccount', 'ICNBusiness', 'BusinessVerificationPicture', 'IdState', 'IdCountry', 'Active'],
+            ['BirthDate', 'CreationDate', 'PremiumExpiry', 'LastConnection']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

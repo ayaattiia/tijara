@@ -11,7 +11,15 @@ class TransportsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Transports::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Transports::class,
+            ['Name', 'Logo', 'Phone', 'Email', 'Zones'],
+            ['FreeFrom', 'Active'],
+            ['DeliveryFee', 'CreatedAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

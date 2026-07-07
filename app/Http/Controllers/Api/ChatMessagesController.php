@@ -11,7 +11,15 @@ class ChatMessagesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(ChatMessages::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            ChatMessages::class,
+            ['Message'],
+            ['IdChatMessage', 'IdChat', 'IdUserSender', 'Report', 'AdminReview', 'Active'],
+            ['CreateDate']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

@@ -11,7 +11,15 @@ class PaymentsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Payments::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Payments::class,
+            ['Reference'],
+            ['IdUser', 'IdOrder', 'Method', 'Status', 'TransactionId'],
+            ['Amount', 'CreatedAt', 'PaidAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

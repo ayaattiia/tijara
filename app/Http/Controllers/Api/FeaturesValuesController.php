@@ -11,7 +11,15 @@ class FeaturesValuesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(FeaturesValues::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            FeaturesValues::class,
+            [],
+            ['IdFeature', 'Active'],
+            ['ValueFeature']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

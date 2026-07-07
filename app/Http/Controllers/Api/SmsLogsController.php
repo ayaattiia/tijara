@@ -11,7 +11,15 @@ class SmsLogsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(SmsLogs::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            SmsLogs::class,
+            ['Recipient', 'Message'],
+            ['Status', 'Provider', 'Error'],
+            ['SentAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

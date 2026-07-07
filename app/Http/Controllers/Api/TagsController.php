@@ -11,7 +11,15 @@ class TagsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Tags::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Tags::class,
+            ['Tag'],
+            ['IdUser', 'IdLangue', 'Active'],
+            []
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

@@ -11,7 +11,15 @@ class PointPacketsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(PointPackets::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            PointPackets::class,
+            ['Title', 'Description'],
+            ['Active'],
+            ['PointsCount', 'Price', 'Discount', 'CreatedAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

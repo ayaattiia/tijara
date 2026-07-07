@@ -8,49 +8,18 @@ use Illuminate\Http\Request;
 
 class ProductsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Products::with(['user:IdUser,Username,FirstName,LastName,Email,ProfilePicture'])
-            ->paginate(10);
+        $perPage = (int) $request->query('per_page', 20);
+        $query = $this->buildFilteredQuery(
+            $request,
+            Products::class,
+            ['CodeBarProduct', 'CodeProduct', 'ReferenceProduct', 'TitleProduct', 'DescriptionProduct'],
+            ['ColorProduct', 'TvaProduct', 'IdPricesDelevery', 'ImageProduct', 'VideoProduct', 'IdPrize', 'IdCateorie', 'IdUser', 'IdCountrie', 'Active'],
+            ['QuantityProduct', 'PriceProduct']
+        );
 
-        return response()->json($products);
-    }
-    public function search($search)
-    {
-        $products = Products::with(['user:IdUser,Username,FirstName,LastName,Email,ProfilePicture'])
-            ->where(function ($q) use ($search) {
-                $q->where('TitleProduct', 'like', "%{$search}%")
-                    ->orWhere('DescriptionProduct', 'like', "%{$search}%")
-                    ->orWhere('ReferenceProduct', 'like', "%{$search}%")
-                    ->orWhere('CodeBarProduct', 'like', "%{$search}%");
-            })
-            ->paginate(10);
-
-        return response()->json($products);
-    }
-
-    public function byCategory($IdCateorie)
-    {
-        $products = Products::where('IdCateorie', $IdCateorie)->paginate(10);
-        return response()->json($products);
-    }
-
-    public function byUser($IdUser)
-    {
-        $products = Products::where('IdUser', $IdUser)->paginate(10);
-        return response()->json($products);
-    }
-
-    public function byPriceRange($min_price, $max_price)
-    {
-        $products = Products::whereBetween('PriceProduct', [$min_price, $max_price])->paginate(10);
-        return response()->json($products);
-    }
-
-    public function byActive($Active)
-    {
-        $products = Products::where('Active', $Active)->paginate(10);
-        return response()->json($products);
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

@@ -11,7 +11,15 @@ class ListPermissionsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(ListPermissions::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            ListPermissions::class,
+            ['TitleEn', 'TitleFr', 'TitleAr', 'Description'],
+            ['GroupName'],
+            []
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

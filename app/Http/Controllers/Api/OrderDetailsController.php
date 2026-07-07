@@ -11,7 +11,15 @@ class OrderDetailsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(OrderDetails::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            OrderDetails::class,
+            ['ZipCode', 'Address', 'Email', 'Telephone', 'FirstName', 'LastName'],
+            ['IdUser', 'IdProduct', 'IdState', 'IdCountry', 'IdOrder', 'Active'],
+            ['Quantity', 'TotalAmount', 'DateTimeCommand']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

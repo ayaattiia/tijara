@@ -8,10 +8,18 @@ use Illuminate\Http\Request;
 
 class AdLikesController extends Controller
 {
-    public function index(Request $request)
+     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(AdLikes::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            AdLikes::class,
+            [],
+            ['IdAd', 'IdUser'],
+            ['CreatedAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

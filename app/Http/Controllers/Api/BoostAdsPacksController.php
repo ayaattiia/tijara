@@ -11,7 +11,15 @@ class BoostAdsPacksController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(BoostAdsPacks::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            BoostAdsPacks::class,
+            ['Title', 'Links'],
+            ['Sliders', 'SideBar', 'Footer', 'RelatedPost', 'FirstLogin', 'Active'],
+            ['Price', 'Discount', 'MaxDuration', 'OrdersCount', 'CreatedAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

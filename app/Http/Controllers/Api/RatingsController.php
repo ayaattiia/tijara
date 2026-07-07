@@ -11,7 +11,15 @@ class RatingsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Ratings::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Ratings::class,
+            [],
+            ['IdUser', 'TableName', 'IdTable', 'Active'],
+            ['Rating', 'CommentRating', 'Date']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

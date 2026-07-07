@@ -11,7 +11,15 @@ class AdsWishlistController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(AdsWishlist::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            AdsWishlist::class,
+            [],
+            ['IdUser', 'IdAd', 'Liked'],
+            []
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

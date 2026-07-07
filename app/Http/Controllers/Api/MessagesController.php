@@ -11,7 +11,15 @@ class MessagesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Messages::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Messages::class,
+            ['Message'],
+            ['IdUserSender', 'IdUserReceiver', 'IdMessageReplay', 'Active'],
+            ['DateMessage']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

@@ -11,7 +11,15 @@ class CountriesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Countries::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Countries::class,
+            ['country_code', 'country_enName', 'country_arName', 'country_enNationality', 'country_arNationality', 'Title', 'Flag', 'Code', 'PhoneCode'],
+            ['Active'],
+            ['CreatedAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

@@ -11,7 +11,15 @@ class InvoicesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Invoices::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Invoices::class,
+            ['Number'],
+            ['IdOrder', 'IdUser', 'IdVendor', 'Status'],
+            ['Subtotal', 'Tax', 'DeliveryFee', 'Total', 'IssuedAt', 'PaidAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

@@ -11,7 +11,15 @@ class EmailTokensController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(EmailTokens::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            EmailTokens::class,
+            [],
+            ['IdUser', 'Token', 'Type', 'Used'],
+            ['ExpiresAt', 'CreatedAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

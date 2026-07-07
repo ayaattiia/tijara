@@ -11,7 +11,15 @@ class CommentsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Comments::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Comments::class,
+            ['Comment'],
+            ['IdUser', 'IdReplyComment', 'IdCourse', 'IdLesson', 'IdMeet', 'Active'],
+            ['Date']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

@@ -11,7 +11,15 @@ class BrandsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Brands::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Brands::class,
+            ['Title', 'Description'],
+            ['Image', 'Active'],
+            []
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

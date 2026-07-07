@@ -11,7 +11,15 @@ class CitiesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Cities::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Cities::class,
+            ['Title', 'TitleEn', 'TitleAr'],
+            ['IdCountry', 'Image', 'Active'],
+            ['CreatedAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

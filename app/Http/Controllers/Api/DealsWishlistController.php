@@ -11,7 +11,15 @@ class DealsWishlistController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(DealsWishlist::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            DealsWishlist::class,
+            [],
+            ['IdUser', 'IdDeal', 'Liked'],
+            []
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

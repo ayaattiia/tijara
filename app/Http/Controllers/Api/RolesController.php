@@ -11,7 +11,15 @@ class RolesController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Roles::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Roles::class,
+            [],
+            ['IdRole', 'RoleUser', 'Active'],
+            []
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

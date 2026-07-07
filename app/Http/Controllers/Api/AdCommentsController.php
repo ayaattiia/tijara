@@ -11,7 +11,15 @@ class AdCommentsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(AdComments::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            AdComments::class,
+            ['Content'],
+            ['IdAd', 'IdUser', 'Active'],
+            ['CreatedAt']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)

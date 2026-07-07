@@ -18,11 +18,9 @@ class CategoriesController extends Controller
         // ?idparent=5 => uniquement les sous-categories de la categorie 5
         if ($request->has('idparent')) {
             $query->where('idparent', $request->query('idparent'));
-            // return response()->json(
-            //     Categories::where('idparent', $request->query('idparent'))->paginate($perPage)
-            // );
         }
 
+        // ?idtypecat=2 => filtrer par type de categorie
         if ($request->has('idtypecat')) {
             $query->where('idtypecat', $request->query('idtypecat'));
         }
@@ -37,13 +35,12 @@ class CategoriesController extends Controller
             $term = $request->query('search');
             $query->where(function ($q) use ($term) {
                 $q->where('TitleEn', 'like', "%{$term}%")
-                    ->orWhere('TitleFr', 'like', "%{$term}%")
-                    ->orWhere('TitleAr', 'like', "%{$term}%")
-                    ->orWhere('Description', 'like', "%{$term}%");
+                  ->orWhere('TitleFr', 'like', "%{$term}%")
+                  ->orWhere('TitleAr', 'like', "%{$term}%")
+                  ->orWhere('Description', 'like', "%{$term}%");
             });
         }
 
-        // return response()->json(Categories::paginate($perPage));
         return response()->json($query->paginate($perPage));
     }
 

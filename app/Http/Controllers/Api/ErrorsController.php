@@ -11,7 +11,15 @@ class ErrorsController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 20);
-        return response()->json(Errors::paginate($perPage));
+        $query = $this->buildFilteredQuery(
+            $request,
+            Errors::class,
+            ['TitleError', 'Req', 'ReqError', 'ExceptionError', 'OtheError', 'Page', 'Action'],
+            ['IdUser', 'Validate'],
+            ['dateTimeError']
+        );
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(Request $request)
