@@ -8,13 +8,13 @@ INSERT INTO roles (IdRole, RoleUser, Active) VALUES
 (1,'User',1),
 (2,'Entreprise',1),
 (3,'Admin',1),
-(4,'Moderator',1),
-(5,'Vendor',1),
-(6,'Customer',1),
-(7,'Partner',1),
-(8,'Manager',1),
-(9,'Support',1),
-(10,'Guest',1);
+-- (4,'Moderator',1),
+-- (5,'Vendor',1),
+-- (6,'Customer',1),
+-- (7,'Partner',1),
+-- (8,'Manager',1),
+-- (9,'Support',1),
+-- (10,'Guest',1);
 
 INSERT INTO typecategory (Idtypecat, Title) VALUES
 (1,'Electronics'),
@@ -313,6 +313,19 @@ VALUES
 (9,4,'ICN009',90,300.000,20.000,90.000,1),
 (10,5,'ICN010',70,250.000,0.000,70.000,1);
 
+-- seed_part4.sql
+SET FOREIGN_KEY_CHECKS=0;
+START TRANSACTION;
+INSERT INTO reviews (IdReview,IdUser,TargetType,TargetId,Rating,Comment,Active) VALUES (1,1,'product',1,5,'Excellent',1),(2,2,'product',2,4,'Very good',1),(3,3,'ad',1,5,'Trusted seller',1),(4,4,'product',1,3,'Average',1),(5,5,'deal',1,5,'Great deal',1),(6,1,'product',2,4,'Nice',1),(7,2,'ad',2,5,'Recommended',1),(8,3,'product',1,4,'Good',1),(9,4,'deal',2,5,'Perfect',1),(10,5,'product',2,5,'Amazing',1);
+INSERT INTO ratings (IdRating,IdUser,Rating,CommentRating,Date,TableName,IdTable,Active) VALUES (1,1,5,'Excellent','2026-07-01','products',1,1),(2,2,4,'Good','2026-07-02','products',2,1),(3,3,5,'Top','2026-07-03','ads',1,1),(4,4,3,'OK','2026-07-04','products',1,1),(5,5,5,'Perfect','2026-07-05','deals',1,1),(6,1,4,'Nice','2026-07-06','products',2,1),(7,2,5,'Fast','2026-07-06','ads',2,1),(8,3,4,'Good','2026-07-06','products',1,1),(9,4,5,'Excellent','2026-07-07','deals',2,1),(10,5,5,'Super','2026-07-07','products',2,1);
+INSERT INTO notifications (IdNotification,Title,Description,Date,Type,IsRead,IdUser) VALUES (1,'Welcome','Welcome to Tijara','2026-07-01','system',0,1),(2,'Order','Order confirmed','2026-07-02','order',1,2),(3,'Payment','Payment received','2026-07-03','payment',0,3),(4,'Delivery','Order shipped','2026-07-04','delivery',0,4),(5,'Promo','New offers','2026-07-05','marketing',1,5),(6,'Review','Leave a review','2026-07-06','review',0,1),(7,'Wallet','Wallet updated','2026-07-06','wallet',1,2),(8,'Message','New message','2026-07-06','chat',0,3),(9,'Security','Password changed','2026-07-07','security',1,4),(10,'Coupon','Coupon available','2026-07-07','coupon',0,5);
+INSERT INTO likes (IdLike,IdUser,TargetType,TargetId) VALUES (1,1,'product',1),(2,2,'product',2),(3,3,'ad',1),(4,4,'deal',1),(5,5,'product',2),(6,1,'ad',2),(7,2,'deal',2),(8,3,'product',1),(9,4,'product',2),(10,5,'ad',1);
+INSERT INTO wishlistads (IdWish,IdUser,IdAd) VALUES (1,1,1),(2,2,2),(3,3,3),(4,4,4),(5,5,5),(6,1,6),(7,2,7),(8,3,8),(9,4,9),(10,5,10);
+INSERT INTO wishlistdeals (IdWish,IdUser,IdDeal) VALUES (1,1,1),(2,2,2),(3,3,3),(4,4,4),(5,5,5),(6,1,6),(7,2,7),(8,3,8),(9,4,9),(10,5,10);
+INSERT INTO productwishlist (IdWishlistProduct,IdUser,IdProduct,Liked) VALUES (1,1,1,1),(2,2,2,1),(3,3,1,1),(4,4,2,1),(5,5,1,1),(6,1,2,1),(7,2,1,1),(8,3,2,1),(9,4,1,1),(10,5,2,1);
+INSERT INTO adlikes (IdLike,IdAd,IdUser) VALUES (1,1,1),(2,2,2),(3,3,3),(4,4,4),(5,5,5),(6,6,1),(7,7,2),(8,8,3),(9,9,4),(10,10,5);
+COMMIT;
+SET FOREIGN_KEY_CHECKS=1;
 
 
 
