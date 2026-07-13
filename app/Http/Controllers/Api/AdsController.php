@@ -27,12 +27,27 @@ class AdsController extends Controller
 
         return response()->json($query->paginate($perPage));
     }
-
     public function store(Request $request)
     {
-        $data = $request->all();
+        $request->validate([
+            'TitleAd'       => 'required|string|max:250',
+            'DescriptionAd' => 'nullable|string',
+            'PriceAd'       => 'required',
+            'ImageAd'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+        ]);
+
+        $data = $request->except('ImageAd'); // don't pass the raw file into create()
+
+        if ($request->hasFile('ImageAd')) {
+            $data['ImageAd'] = $request->file('ImageAd')->store('images/ads', 'public');
+        }
+
         $item = Ads::create($data);
-        return response()->json($item, 201);
+
+        return response()->json([
+            'data' => $item,
+            'image_url' => $item->ImageAd ? asset('storage/' . $item->ImageAd) : null,
+        ], 201);
     }
 
     public function show($ads)
