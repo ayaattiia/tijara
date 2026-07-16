@@ -27,8 +27,13 @@ class Products extends Model
         'IdCateorie',
         'IdUser',
         'IdCountrie',
-        'Active'
+        'Active',
+        'IdFeature',
+        'IdFV'
     ];
+
+
+    protected $hidden = ['IdCountrie'];
 
 
     public function prize()
@@ -46,8 +51,13 @@ class Products extends Model
         return $this->belongsTo(\App\Models\Users::class, 'IdUser', 'IdUser');
     }
 
-    public function countrie()
+    public function feature()
     {
-        return $this->belongsTo(\App\Models\Countries::class, 'IdCountrie', 'IdCountry');
+        return $this->belongsTo(\App\Models\Features::class, 'IdFeature', 'IdFeature');
+    }
+
+    public function featureValue()
+    {
+        return $this->belongsTo(\App\Models\FeaturesValues::class, 'IdFV', 'IdFV');
     }
 }

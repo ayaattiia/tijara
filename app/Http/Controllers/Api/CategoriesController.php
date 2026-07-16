@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Categories;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CategoriesController extends Controller
 {
@@ -88,10 +89,16 @@ class CategoriesController extends Controller
         return response()->json($item);
     }
 
+    // ⬇️ REPLACE YOUR OLD destroy() WITH THIS ONE ⬇️
     public function destroy($categories)
     {
         $item = Categories::findOrFail($categories);
-        $item->delete();
+
+        DB::transaction(function () use ($item) {
+            Categories::where('idparent', $item->id)->update(['idparent' => 0]);
+            $item->delete();
+        });
+
         return response()->json(null, 204);
     }
 

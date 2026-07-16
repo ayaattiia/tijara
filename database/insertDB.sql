@@ -88,6 +88,22 @@ INSERT INTO categories (IdCateg, idparent, TitleEn, TitleFr, TitleAr, Descriptio
 (9,0,'Books','Livres','كتب','Books','books.jpg',8,1),
 (10,0,'Food','Alimentation','غذاء','Food products','food.jpg',9,1);
 
+
+UPDATE categories
+SET idparent = CASE IdCateg
+    WHEN 1 THEN 2
+    WHEN 2 THEN 0
+    WHEN 3 THEN 1
+    WHEN 4 THEN 2
+    WHEN 5 THEN 1
+    WHEN 6 THEN 0
+    WHEN 7 THEN 2
+    WHEN 8 THEN 1
+    WHEN 9 THEN 0
+    WHEN 10 THEN 2
+END
+WHERE IdCateg IN (1,2,3,4,5,6,7,8,9,10);
+
 INSERT INTO users (IdUser, Username, FirstName, LastName, Email, Telephone, Password, IdRole, CreationDate, Active, EmailConfirmed) VALUES
 (1,'user1','Ahmed','Ben Ali','ahmed@test.com','20000001','$2y$12$password',1,'2026-07-07 10:00:00',1,1),
 (2,'user2','Sarra','Trabelsi','sarra@test.com','20000002','$2y$12$password',1,'2026-07-07 10:01:00',1,1),

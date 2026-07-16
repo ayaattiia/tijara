@@ -13,6 +13,9 @@ class ProductsController extends Controller
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
 
+    // Relations to eager-load so each product automatically shows its feature/value details
+    private const FEATURES_RELATIONS = ['feature', 'featureValue'];
+
     public function index(Request $request)
     {
         $perPage = $this->resolvePerPage($request);
@@ -21,9 +24,9 @@ class ProductsController extends Controller
             $request,
             Products::class,
             ['CodeBarProduct', 'CodeProduct', 'ReferenceProduct', 'TitleProduct', 'DescriptionProduct'],
-            ['ColorProduct', 'TvaProduct', 'IdPricesDelevery', 'ImageProduct', 'VideoProduct', 'IdPrize', 'IdCateorie', 'IdUser', 'IdCountrie', 'Active'],
+            ['ColorProduct', 'TvaProduct', 'IdPricesDelevery', 'ImageProduct', 'VideoProduct', 'IdPrize', 'IdCateorie', 'IdUser', 'Active', 'IdFeature', 'IdFV'],
             ['QuantityProduct', 'PriceProduct']
-        );
+        )->with(self::FEATURES_RELATIONS);
 
         return response()->json($query->paginate($perPage));
     }
@@ -32,12 +35,12 @@ class ProductsController extends Controller
     {
         $data = $request->all();
         $item = Products::create($data);
-        return response()->json($item, 201);
+        return response()->json($item->load(self::FEATURES_RELATIONS), 201);
     }
 
     public function show($products)
     {
-        $item = Products::findOrFail($products);
+        $item = Products::with(self::FEATURES_RELATIONS)->findOrFail($products);
         return response()->json($item);
     }
 
@@ -45,7 +48,7 @@ class ProductsController extends Controller
     {
         $item = Products::findOrFail($products);
         $item->update($request->all());
-        return response()->json($item);
+        return response()->json($item->load(self::FEATURES_RELATIONS));
     }
 
     public function destroy($products)

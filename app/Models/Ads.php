@@ -9,7 +9,6 @@ class Ads extends Model
     protected $table = 'Ads';
     protected $primaryKey = 'IdAd';
     public $timestamps = false;
-
     protected $fillable = [
         'TitleAd',
         'DescriptionAd',
@@ -33,9 +32,12 @@ class Ads extends Model
         'StartDate',
         'Idtypecat',
         'Active',
-        'Type'
+        'Type',
+        'IdFeature',
+        'IdFV'
     ];
 
+    protected $hidden = ['IdState', 'IdCountry'];
     public function categ()
     {
         return $this->belongsTo(\App\Models\Categories::class, 'IdCateg', 'IdCateg');
@@ -46,18 +48,18 @@ class Ads extends Model
         return $this->belongsTo(\App\Models\Users::class, 'IdUser', 'IdUser');
     }
 
-    public function state()
-    {
-        return $this->belongsTo(\App\Models\States::class, 'IdState', 'IdState');
-    }
-
-    public function country()
-    {
-        return $this->belongsTo(\App\Models\Countries::class, 'IdCountry', 'IdCountry');
-    }
-
     public function typecat()
     {
         return $this->belongsTo(\App\Models\TypeCategory::class, 'Idtypecat', 'Idtypecat');
+    }
+
+    public function feature()
+    {
+        return $this->belongsTo(\App\Models\Features::class, 'IdFeature', 'IdFeature');
+    }
+
+    public function featureValue()
+    {
+        return $this->belongsTo(\App\Models\FeaturesValues::class, 'IdFV', 'IdFV');
     }
 }

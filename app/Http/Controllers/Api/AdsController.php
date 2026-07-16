@@ -13,6 +13,9 @@ class AdsController extends Controller
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
 
+    // Relations to eager-load so each ad automatically shows its feature/value details
+    private const FEATURES_RELATIONS = ['feature', 'featureValue'];
+
     public function index(Request $request)
     {
         $perPage = $this->resolvePerPage($request);
@@ -21,9 +24,9 @@ class AdsController extends Controller
             $request,
             Ads::class,
             ['TitleAd', 'DescriptionAd', 'DetailsAd', 'LocationAd', 'Telephone', 'Email'],
-            ['IdPricesDelevery', 'ImageAd', 'VideoAd', 'IdCateg', 'IdUser', 'IdState', 'IdCountry', 'Color', 'Brand', 'Ownerads', 'Idtypecat', 'Active', 'Type'],
+            ['IdPricesDelevery', 'ImageAd', 'VideoAd', 'IdCateg', 'IdUser', 'Color', 'Brand', 'Ownerads', 'Idtypecat', 'Active', 'Type', 'IdFeature', 'IdFV'],
             ['PriceAd', 'DatePublication', 'DateEnd', 'StartDate']
-        );
+        )->with(self::FEATURES_RELATIONS);
 
         return response()->json($query->paginate($perPage));
     }
@@ -45,14 +48,14 @@ class AdsController extends Controller
         $item = Ads::create($data);
 
         return response()->json([
-            'data' => $item,
+            'data' => $item->load(self::FEATURES_RELATIONS),
             'image_url' => $item->ImageAd ? asset('storage/' . $item->ImageAd) : null,
         ], 201);
     }
 
     public function show($ads)
     {
-        $item = Ads::findOrFail($ads);
+        $item = Ads::with(self::FEATURES_RELATIONS)->findOrFail($ads);
         return response()->json($item);
     }
 
@@ -60,7 +63,7 @@ class AdsController extends Controller
     {
         $item = Ads::findOrFail($ads);
         $item->update($request->all());
-        return response()->json($item);
+        return response()->json($item->load(self::FEATURES_RELATIONS));
     }
 
     public function destroy($ads)
