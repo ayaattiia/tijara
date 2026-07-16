@@ -8,7 +8,7 @@
     SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 
     CREATE DATABASE IF NOT EXISTS `TIJARADB` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    
+
 
     -- ============================================================
     -- Table: AdComments
@@ -78,6 +78,20 @@
     KEY `FK_Ads_Users` (`IdUser`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+-- =========================
+-- ADS TABLE
+-- =========================
+
+ALTER TABLE Ads
+ADD COLUMN IdFeature BIGINT NULL AFTER Idtypecat,
+ADD COLUMN IdFV BIGINT NULL AFTER IdFeature;
+-- =========================
+-- PRODUCTS TABLE
+-- =========================
+ALTER TABLE Products
+ADD COLUMN IdFeature BIGINT NULL AFTER IdCountrie,
+ADD COLUMN IdFV BIGINT NULL AFTER IdFeature;
     -- ============================================================
     -- Table: AdsWishlist
     -- ============================================================

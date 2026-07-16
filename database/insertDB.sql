@@ -343,6 +343,59 @@ INSERT INTO adlikes (IdLike,IdAd,IdUser) VALUES (1,1,1),(2,2,2),(3,3,3),(4,4,4),
 COMMIT;
 SET FOREIGN_KEY_CHECKS=1;
 
+-- =========================
+-- Update products (IdProduct 11 -> 31)
+-- =========================
+UPDATE `products` SET `IdFeature`=1,  `IdFV`=1  WHERE `IdProduct`=11;
+UPDATE `products` SET `IdFeature`=2,  `IdFV`=2  WHERE `IdProduct`=12;
+UPDATE `products` SET `IdFeature`=5,  `IdFV`=5  WHERE `IdProduct`=13;
+UPDATE `products` SET `IdFeature`=7,  `IdFV`=7  WHERE `IdProduct`=14;
+UPDATE `products` SET `IdFeature`=10, `IdFV`=10 WHERE `IdProduct`=15;
+UPDATE `products` SET `IdFeature`=6,  `IdFV`=6  WHERE `IdProduct`=16;
+UPDATE `products` SET `IdFeature`=9,  `IdFV`=9  WHERE `IdProduct`=17;
+UPDATE `products` SET `IdFeature`=3,  `IdFV`=3  WHERE `IdProduct`=18;
+UPDATE `products` SET `IdFeature`=5,  `IdFV`=5  WHERE `IdProduct`=19;
+UPDATE `products` SET `IdFeature`=3,  `IdFV`=3  WHERE `IdProduct`=20;
+
+UPDATE `products` SET `IdFeature`=1,  `IdFV`=1  WHERE `IdProduct`=21;
+UPDATE `products` SET `IdFeature`=2,  `IdFV`=2  WHERE `IdProduct`=22;
+UPDATE `products` SET `IdFeature`=5,  `IdFV`=5  WHERE `IdProduct`=23;
+UPDATE `products` SET `IdFeature`=7,  `IdFV`=7  WHERE `IdProduct`=24;
+UPDATE `products` SET `IdFeature`=10, `IdFV`=10 WHERE `IdProduct`=25;
+UPDATE `products` SET `IdFeature`=6,  `IdFV`=6  WHERE `IdProduct`=26;
+UPDATE `products` SET `IdFeature`=9,  `IdFV`=9  WHERE `IdProduct`=27;
+UPDATE `products` SET `IdFeature`=3,  `IdFV`=3  WHERE `IdProduct`=28;
+UPDATE `products` SET `IdFeature`=5,  `IdFV`=5  WHERE `IdProduct`=29;
+UPDATE `products` SET `IdFeature`=3,  `IdFV`=3  WHERE `IdProduct`=30;
+
+UPDATE `products` SET `IdFeature`=1,  `IdFV`=1  WHERE `IdProduct`=31;
+
+-- =========================
+-- Update ads (IdAd 11 -> 31)
+-- =========================
+UPDATE `ads` SET `IdFeature`=1,  `IdFV`=1  WHERE `IdAd`=11;
+UPDATE `ads` SET `IdFeature`=2,  `IdFV`=2  WHERE `IdAd`=12;
+UPDATE `ads` SET `IdFeature`=5,  `IdFV`=5  WHERE `IdAd`=13;
+UPDATE `ads` SET `IdFeature`=7,  `IdFV`=7  WHERE `IdAd`=14;
+UPDATE `ads` SET `IdFeature`=10, `IdFV`=10 WHERE `IdAd`=15;
+UPDATE `ads` SET `IdFeature`=6,  `IdFV`=6  WHERE `IdAd`=16;
+UPDATE `ads` SET `IdFeature`=9,  `IdFV`=9  WHERE `IdAd`=17;
+UPDATE `ads` SET `IdFeature`=3,  `IdFV`=3  WHERE `IdAd`=18;
+UPDATE `ads` SET `IdFeature`=5,  `IdFV`=5  WHERE `IdAd`=19;
+UPDATE `ads` SET `IdFeature`=3,  `IdFV`=3  WHERE `IdAd`=20;
+
+UPDATE `ads` SET `IdFeature`=1,  `IdFV`=1  WHERE `IdAd`=21;
+UPDATE `ads` SET `IdFeature`=2,  `IdFV`=2  WHERE `IdAd`=22;
+UPDATE `ads` SET `IdFeature`=5,  `IdFV`=5  WHERE `IdAd`=23;
+UPDATE `ads` SET `IdFeature`=7,  `IdFV`=7  WHERE `IdAd`=24;
+UPDATE `ads` SET `IdFeature`=10, `IdFV`=10 WHERE `IdAd`=25;
+UPDATE `ads` SET `IdFeature`=6,  `IdFV`=6  WHERE `IdAd`=26;
+UPDATE `ads` SET `IdFeature`=9,  `IdFV`=9  WHERE `IdAd`=27;
+UPDATE `ads` SET `IdFeature`=3,  `IdFV`=3  WHERE `IdAd`=28;
+UPDATE `ads` SET `IdFeature`=5,  `IdFV`=5  WHERE `IdAd`=29;
+UPDATE `ads` SET `IdFeature`=3,  `IdFV`=3  WHERE `IdAd`=30;
+
+UPDATE `ads` SET `IdFeature`=1,  `IdFV`=1  WHERE `IdAd`=31;
 
 
 COMMIT;
