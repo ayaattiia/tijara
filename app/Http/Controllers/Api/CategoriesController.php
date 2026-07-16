@@ -14,11 +14,17 @@ class CategoriesController extends Controller
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
 
+    /**
+     * GET /api/categories
+     * Flat, paginated list of categories (with optional filters).
+     * Each item now includes its direct children (one level deep).
+     */
     public function index(Request $request)
     {
         $perPage = $this->resolvePerPage($request);
 
-        $query = Categories::query();
+        // Eager-load direct children so each item in the list carries its own subcategories
+        $query = Categories::query()->with('children');
 
         // ?idparent=0 => uniquement les categories principales (racines)
         // ?idparent=5 => uniquement les sous-categories de la categorie 5
@@ -50,13 +56,35 @@ class CategoriesController extends Controller
         return response()->json($query->paginate($perPage));
     }
 
-    // GET /api/categories-roots : uniquement les categories principales (idparent = 0)
+    /**
+     * GET /api/categories-roots
+     * Uniquement les categories principales (idparent = 0), avec leurs enfants directs.
+     */
     public function roots()
     {
-        return response()->json(Categories::roots()->get());
+        return response()->json(
+            Categories::roots()->with('children')->get()
+        );
     }
 
-    // GET /api/categories/{id}/children : les sous-categories d'une categorie donnee
+    /**
+     * GET /api/categories-tree
+     * Arbre complet: racines avec enfants imbriqués sur plusieurs niveaux.
+     * Nécessite une relation récursive dans le modèle (voir note en bas de fichier).
+     */
+    public function tree()
+    {
+        return response()->json(
+            Categories::where('idparent', 0)
+                ->with('childrenRecursive') // relation récursive, voir modèle
+                ->get()
+        );
+    }
+
+    /**
+     * GET /api/categories/{id}/children
+     * Les sous-categories directes d'une categorie donnee.
+     */
     public function children($categories)
     {
         $item = Categories::findOrFail($categories);
@@ -76,6 +104,10 @@ class CategoriesController extends Controller
         return response()->json($item, 201);
     }
 
+    /**
+     * GET /api/categories/{id}
+     * Retourne la categorie avec son parent et ses enfants directs.
+     */
     public function show($categories)
     {
         $item = Categories::with(['parent', 'children'])->findOrFail($categories);
@@ -114,3 +146,31 @@ class CategoriesController extends Controller
         return max(self::MIN_PER_PAGE, min($perPage, self::MAX_PER_PAGE));
     }
 }
+
+/*
+ * -----------------------------------------------------------------------
+ * NOTE — Model relationships required (App\Models\Categories.php)
+ * -----------------------------------------------------------------------
+ *
+ * public function parent()
+ * {
+ *     return $this->belongsTo(Categories::class, 'idparent');
+ * }
+ *
+ * public function children()
+ * {
+ *     return $this->hasMany(Categories::class, 'idparent');
+ * }
+ *
+ * // Recursive relation, needed only for the tree() method above (multi-level nesting)
+ * public function childrenRecursive()
+ * {
+ *     return $this->children()->with('childrenRecursive');
+ * }
+ *
+ * public function scopeRoots($query)
+ * {
+ *     return $query->where('idparent', 0);
+ * }
+ * -----------------------------------------------------------------------
+ */

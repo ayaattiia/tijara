@@ -8,7 +8,7 @@
     SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 
     CREATE DATABASE IF NOT EXISTS `TIJARADB` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    USE `TIJARADB`;
+    
 
     -- ============================================================
     -- Table: AdComments
