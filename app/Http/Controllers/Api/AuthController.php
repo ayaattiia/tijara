@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+use Exception;
+
 
 class AuthController extends Controller
 {
@@ -162,4 +165,73 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Mot de passe reinitialise avec succes']);
     }
+
+public function redirectToFacebook()
+{
+    return Socialite::driver('facebook')
+        ->scopes(['email'])
+        ->stateless()
+        ->redirect();
+}
+
+public function handleFacebookCallback()
+{
+    try {
+
+        $facebookUser = Socialite::driver('facebook')
+            ->stateless()
+            ->user();
+
+        if (!$facebookUser->getEmail()) {
+            return response()->json([
+                'message' => 'Facebook did not return an email address.'
+            ], 400);
+        }
+
+        $user = Users::where('Email', $facebookUser->getEmail())->first();
+
+        if (!$user) {
+
+            $user = Users::create([
+                'Username'          => $facebookUser->getName(),
+                'FirstName'         => $facebookUser->getName(),
+                'Email'             => $facebookUser->getEmail(),
+                'Password'          => Hash::make(Str::random(32)),
+                'FacebookId'        => $facebookUser->getId(),
+                'ProfilePicture'    => $facebookUser->getAvatar(),
+                'CreationDate'      => now(),
+                'EmailConfirmed'    => 1,
+                'Active'            => 1,
+            ]);
+
+        } else {
+
+            if (!$user->FacebookId) {
+                $user->FacebookId = $facebookUser->getId();
+            }
+
+            if (!$user->ProfilePicture) {
+                $user->ProfilePicture = $facebookUser->getAvatar();
+            }
+
+            $user->save();
+        }
+
+        $token = $user->createToken('facebook')->accessToken;
+
+        return redirect(
+            env('FRONTEND_URL') .
+            '/login-success?token=' .
+            urlencode($token)
+        );
+
+    } catch (Exception $e) {
+
+        return response()->json([
+            'message' => 'Facebook authentication failed.',
+            'error' => $e->getMessage(),
+        ], 500);
+
+    }
+}
 }

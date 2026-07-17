@@ -7,7 +7,7 @@
     SET FOREIGN_KEY_CHECKS = 0;
     SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 
-    CREATE DATABASE IF NOT EXISTS `TIJARADB` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE DATABASE IF NOT EXISTS `tijara` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
     -- ============================================================
@@ -83,15 +83,7 @@
 -- ADS TABLE
 -- =========================
 
-ALTER TABLE Ads
-ADD COLUMN IdFeature BIGINT NULL AFTER Idtypecat,
-ADD COLUMN IdFV BIGINT NULL AFTER IdFeature;
--- =========================
--- PRODUCTS TABLE
--- =========================
-ALTER TABLE Products
-ADD COLUMN IdFeature BIGINT NULL AFTER IdCountrie,
-ADD COLUMN IdFV BIGINT NULL AFTER IdFeature;
+
     -- ============================================================
     -- Table: AdsWishlist
     -- ============================================================
@@ -960,6 +952,15 @@ ADD COLUMN IdFV BIGINT NULL AFTER IdFeature;
     ALTER TABLE Categories
     ADD COLUMN idparent BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER IdCateg;
 
+    ALTER TABLE Ads
+    ADD COLUMN IdFeature BIGINT NULL AFTER Idtypecat,
+    ADD COLUMN IdFV BIGINT NULL AFTER IdFeature;
+    -- =========================
+    -- PRODUCTS TABLE
+    -- =========================
+    ALTER TABLE Products
+    ADD COLUMN IdFeature BIGINT NULL AFTER IdCountrie,
+    ADD COLUMN IdFV BIGINT NULL AFTER IdFeature;
 
 
     SET FOREIGN_KEY_CHECKS = 1;

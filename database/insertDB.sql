@@ -7,14 +7,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 INSERT INTO roles (IdRole, RoleUser, Active) VALUES
 (1,'User',1),
 (2,'Entreprise',1),
-(3,'Admin',1),
--- (4,'Moderator',1),
--- (5,'Vendor',1),
--- (6,'Customer',1),
--- (7,'Partner',1),
--- (8,'Manager',1),
--- (9,'Support',1),
--- (10,'Guest',1);
+(3,'Admin',1);
+
 
 INSERT INTO typecategory (Idtypecat, Title) VALUES
 (1,'Electronics'),
