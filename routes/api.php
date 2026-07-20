@@ -12,11 +12,11 @@ use App\Http\Controllers\Api\BoostAdsPacksController;
 use App\Http\Controllers\Api\BoostsController;
 use App\Http\Controllers\Api\BrandsController;
 use App\Http\Controllers\Api\CategoriesController;
-use App\Http\Controllers\Api\CausesController;
 use App\Http\Controllers\Api\CausesReportsController;
 use App\Http\Controllers\Api\ChatMessagesController;
 use App\Http\Controllers\Api\ChatsController;
 use App\Http\Controllers\Api\CitiesController;
+use App\Http\Controllers\Api\CausesController;
 use App\Http\Controllers\Api\CommentsController;
 use App\Http\Controllers\Api\CountriesController;
 use App\Http\Controllers\Api\CountriesFullController;
@@ -136,11 +136,6 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('winners', WinnersController::class);
     Route::apiResource('wishlist-ads', WishlistAdsController::class);
     Route::apiResource('wishlist-deals', WishlistDealsController::class);
-
-
-
-
-
 });
 
 // ---- Routes publiques (non auth) ----
@@ -154,7 +149,7 @@ Route::get('/products/search/{search}', [ProductsController::class, 'search']);
 Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCategory']);
 Route::get('/products/user/{IdUser}', [ProductsController::class, 'byUser']);
 Route::get('/products/price/{min_price}/{max_price}', [ProductsController::class, 'byPriceRange']);
-Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);  
+Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);
 
 Route::get('/ads', [AdsController::class, 'index']);
 Route::get('/ads/{ads}', [AdsController::class, 'show']);
@@ -170,3 +165,7 @@ Route::get('/ads/country/{IdCountry}', [AdsController::class, 'byCountry']);
 Route::get('/ads/user/{IdUser}', [AdsController::class, 'byUser']);
 Route::get('/ads/price/{min_price}/{max_price}', [AdsController::class, 'byPriceRange']);
 Route::get('/ads/active/{Active}', [AdsController::class, 'byActive']);
+
+Route::post('ads/{ads}/media', [AdsController::class, 'addMedia']);
+
+Route::post('products/{products}/media', [ProductsController::class, 'addMedia']); // add photo/video to existing product

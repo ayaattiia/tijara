@@ -14,7 +14,6 @@ class Ads extends Model
         'DescriptionAd',
         'DetailsAd',
         'PriceAd',
-        'IdPricesDelevery',
         'DatePublication',
         'ImageAd',
         'VideoAd',
@@ -24,20 +23,56 @@ class Ads extends Model
         'IdCountry',
         'LocationAd',
         'DateEnd',
-        'Color',
         'Brand',
         'Ownerads',
         'Telephone',
         'Email',
         'StartDate',
-        'Idtypecat',
         'Active',
         'Type',
-        'IdFeature',
-        'IdFV'
     ];
 
     protected $hidden = ['IdState', 'IdCountry'];
+
+    // Explicit mutators/accessors instead of $casts — these always run
+    // no matter what, so ImageAd/VideoAd are guaranteed to be stored as
+    // JSON strings and returned as PHP arrays.
+    public function setImageAdAttribute($value)
+    {
+        $this->attributes['ImageAd'] = is_array($value) ? json_encode($value) : $value;
+    }
+
+    public function getImageAdAttribute($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        $decoded = json_decode($value, true);
+
+        return json_last_error() === JSON_ERROR_NONE && is_array($decoded)
+            ? $decoded
+            : ($value ? [$value] : []); // legacy plain-string fallback
+    }
+
+    public function setVideoAdAttribute($value)
+    {
+        $this->attributes['VideoAd'] = is_array($value) ? json_encode($value) : $value;
+    }
+
+    public function getVideoAdAttribute($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        $decoded = json_decode($value, true);
+
+        return json_last_error() === JSON_ERROR_NONE && is_array($decoded)
+            ? $decoded
+            : ($value ? [$value] : []); // legacy plain-string fallback
+    }
+
     public function categ()
     {
         return $this->belongsTo(\App\Models\Categories::class, 'IdCateg', 'IdCateg');
@@ -48,18 +83,18 @@ class Ads extends Model
         return $this->belongsTo(\App\Models\Users::class, 'IdUser', 'IdUser');
     }
 
-    public function typecat()
+    /**
+     * FeaturesValues attached to this ad, through the AdsFeatureValues
+     * link table. No dedicated pivot model — just a table name.
+     * Eager-load 'values.feature' to get feature + value together.
+     */
+    public function values()
     {
-        return $this->belongsTo(\App\Models\TypeCategory::class, 'Idtypecat', 'Idtypecat');
-    }
-
-    public function feature()
-    {
-        return $this->belongsTo(\App\Models\Features::class, 'IdFeature', 'IdFeature');
-    }
-
-    public function featureValue()
-    {
-        return $this->belongsTo(\App\Models\FeaturesValues::class, 'IdFV', 'IdFV');
+        return $this->belongsToMany(
+            \App\Models\FeaturesValues::class,
+            'AdsFeatureValues',
+            'IdAd',
+            'IdFV'
+        )->withPivot('IdAdFeatureValue');
     }
 }

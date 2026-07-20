@@ -9,7 +9,8 @@ class Categories extends Model
     protected $table = 'Categories';
     protected $primaryKey = 'IdCateg';
     public $timestamps = false;
-
+    public $incrementing = true;
+    protected $keyType = 'int';
     protected $fillable = [
         'TitleEn',
         'TitleFr',
@@ -41,5 +42,4 @@ class Categories extends Model
     {
         return $this->belongsTo(\App\Models\TypeCategory::class, 'idtypecat', 'Idtypecat');
     }
-
 }

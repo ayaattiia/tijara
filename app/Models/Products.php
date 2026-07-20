@@ -17,24 +17,58 @@ class Products extends Model
         'TitleProduct',
         'DescriptionProduct',
         'QuantityProduct',
-        'ColorProduct',
         'PriceProduct',
         'TvaProduct',
         'IdPricesDelevery',
         'ImageProduct',
         'VideoProduct',
         'IdPrize',
-        'IdCateorie',
+        'IdCateg',
         'IdUser',
         'IdCountrie',
         'Active',
-        'IdFeature',
-        'IdFV'
     ];
-
 
     protected $hidden = ['IdCountrie'];
 
+    // Explicit mutators/accessors (not $casts) — always run regardless of
+    // cast-detection issues, guaranteed to store/read ImageProduct and
+    // VideoProduct as JSON arrays of paths.
+    public function setImageProductAttribute($value)
+    {
+        $this->attributes['ImageProduct'] = is_array($value) ? json_encode($value) : $value;
+    }
+
+    public function getImageProductAttribute($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        $decoded = json_decode($value, true);
+
+        return json_last_error() === JSON_ERROR_NONE && is_array($decoded)
+            ? $decoded
+            : ($value ? [$value] : []);
+    }
+
+    public function setVideoProductAttribute($value)
+    {
+        $this->attributes['VideoProduct'] = is_array($value) ? json_encode($value) : $value;
+    }
+
+    public function getVideoProductAttribute($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        $decoded = json_decode($value, true);
+
+        return json_last_error() === JSON_ERROR_NONE && is_array($decoded)
+            ? $decoded
+            : ($value ? [$value] : []);
+    }
 
     public function prize()
     {
@@ -51,13 +85,18 @@ class Products extends Model
         return $this->belongsTo(\App\Models\Users::class, 'IdUser', 'IdUser');
     }
 
-    public function feature()
+    /**
+     * FeaturesValues attached to this product, through the
+     * ProductsFeatureValues link table. No dedicated pivot model needed.
+     * Eager-load 'values.feature' to get feature + value together.
+     */
+    public function values()
     {
-        return $this->belongsTo(\App\Models\Features::class, 'IdFeature', 'IdFeature');
-    }
-
-    public function featureValue()
-    {
-        return $this->belongsTo(\App\Models\FeaturesValues::class, 'IdFV', 'IdFV');
+        return $this->belongsToMany(
+            \App\Models\FeaturesValues::class,
+            'ProductsFeatureValues',
+            'IdProduct',
+            'IdFV'
+        )->withPivot('IdProductFeatureValue');
     }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Categories;
 use Illuminate\Http\Request;
+use App\Models\Products;
+use App\Models\Ads;
 use Illuminate\Support\Facades\DB;
 
 class CategoriesController extends Controller
@@ -124,16 +126,50 @@ class CategoriesController extends Controller
     // ⬇️ REPLACE YOUR OLD destroy() WITH THIS ONE ⬇️
     public function destroy($categories)
     {
-        $item = Categories::findOrFail($categories);
+        $category = Categories::findOrFail($categories);
 
-        DB::transaction(function () use ($item) {
-            Categories::where('idparent', $item->id)->update(['idparent' => 0]);
-            $item->delete();
+        DB::transaction(function () use ($category) {
+
+            // Find the first child category
+            $childCategory = Categories::where('idparent', $category->IdCateg)->first();
+
+            // If there is a child category, move all references to it
+            if ($childCategory) {
+
+                DB::table('products')
+                    ->where('IdCateg', $category->IdCateg)
+                    ->update([
+                        'IdCateg' => $childCategory->IdCateg
+                    ]);
+
+                DB::table('ads')
+                    ->where('IdCateg', $category->IdCateg)
+                    ->update([
+                        'IdCateg' => $childCategory->IdCateg
+                    ]);
+
+                DB::table('featurecategories')
+                    ->where('IdCategory', $category->IdCateg)
+                    ->update([
+                        'IdCategory' => $childCategory->IdCateg
+                    ]);
+            }
+
+            // Promote child categories to root
+            Categories::where('idparent', $category->IdCateg)
+                ->update([
+                    'idparent' => 0
+                ]);
+
+            // Delete the category
+            $category->delete();
         });
 
-        return response()->json(null, 204);
+        return response()->json([
+            'success' => true,
+            'message' => 'Category deleted successfully.'
+        ], 200);
     }
-
     /**
      * Resolve the per_page value from the request, falling back to a default
      * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.
