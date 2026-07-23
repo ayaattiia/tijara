@@ -52,5 +52,4 @@ class OrderDetails extends Model
     {
         return $this->belongsTo(\App\Models\Orders::class, 'IdOrder', 'IdOrder');
     }
-
 }

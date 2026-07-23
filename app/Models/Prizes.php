@@ -24,4 +24,8 @@ class Prizes extends Model
         return $this->belongsTo(\App\Models\Users::class, 'idUser', 'IdUser');
     }
 
+    public function deal()
+    {
+        return $this->belongsTo(\App\Models\Deals::class, 'IdDeal', 'IdDeal');
+    }
 }

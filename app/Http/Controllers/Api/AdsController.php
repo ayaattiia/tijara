@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ads;
+use App\Models\Features;
+use App\Models\FeaturesValues;
 use Illuminate\Http\Request;
 
 class AdsController extends Controller
@@ -62,8 +64,18 @@ class AdsController extends Controller
             'ImageAd.*'     => 'string|max:2048', // accepts either uploaded files OR plain path/URL strings, checked below
             'VideoAd'       => 'nullable|array',
             'VideoAd.*'     => 'string|max:2048',
+
+            // Legacy: still accepted if you already know the IdFV(s)
             'IdFV'          => 'nullable|array',
             'IdFV.*'        => 'integer|exists:FeaturesValues,IdFV',
+
+            // New: pass the feature name + value directly, no IdFV needed.
+            // If the Feature or the FeaturesValue doesn't exist yet, it is created.
+            'Features'                        => 'nullable|array',
+            'Features.*.TitleFeature'         => 'required_with:Features|string|max:250',
+            'Features.*.ValueFeature'         => 'required_with:Features|string|max:250',
+            'Features.*.UnitFeature'          => 'nullable|string|max:100',
+            'Features.*.DescriptionFeature'   => 'nullable|string',
         ]);
 
         // If real files were uploaded, validate them as files specifically
@@ -74,10 +86,10 @@ class AdsController extends Controller
             $request->validate(['VideoAd.*' => 'mimes:mp4,mov,avi,webm|max:' . self::MAX_VIDEO_KB]);
         }
 
-        $data = $request->except(['ImageAd', 'VideoAd', 'IdFV']);
+        $data = $request->except(['ImageAd', 'VideoAd', 'IdFV', 'Features']);
 
         if ($request->hasFile('ImageAd')) {
-            // Real uploaded files: move them and store the resulting paths
+            // Real uploaded files: move them and store the resulting FILENAMES ONLY
             $data['ImageAd'] = $this->storeMediaFiles($request->file('ImageAd'), self::IMAGES_FOLDER);
         } elseif ($request->filled('ImageAd')) {
             // JSON-only test/seed data: store the given strings as-is
@@ -92,14 +104,23 @@ class AdsController extends Controller
 
         $item = Ads::create($data);
 
-        if ($request->filled('IdFV')) {
-            $item->values()->sync($request->input('IdFV'));
+        // Resolve/attach feature values: prefer the new name-based "Features"
+        // input, fall back to raw "IdFV" if that's what was sent instead.
+        $idFVs = [];
+        if ($request->filled('Features')) {
+            $idFVs = $this->resolveFeatureValueIds($request->input('Features'));
+        } elseif ($request->filled('IdFV')) {
+            $idFVs = $request->input('IdFV');
+        }
+
+        if (!empty($idFVs)) {
+            $item->values()->sync($idFVs);
         }
 
         return response()->json([
             'data'       => $item->load(self::FEATURES_RELATIONS),
-            'image_urls' => collect($item->ImageAd)->map(fn($p) => asset($p)),
-            'video_urls' => collect($item->VideoAd)->map(fn($p) => asset($p)),
+            'image_urls' => $this->mediaUrls($item->ImageAd, self::IMAGES_FOLDER),
+            'video_urls' => $this->mediaUrls($item->VideoAd, self::VIDEOS_FOLDER),
         ], 201);
     }
 
@@ -119,12 +140,20 @@ class AdsController extends Controller
         $request->validate([
             'IdFV'   => 'nullable|array',
             'IdFV.*' => 'integer|exists:FeaturesValues,IdFV',
+
+            'Features'                      => 'nullable|array',
+            'Features.*.TitleFeature'       => 'required_with:Features|string|max:250',
+            'Features.*.ValueFeature'       => 'required_with:Features|string|max:250',
+            'Features.*.UnitFeature'        => 'nullable|string|max:100',
+            'Features.*.DescriptionFeature' => 'nullable|string',
         ]);
 
         $item = Ads::findOrFail($ads);
-        $item->update($request->except('IdFV'));
+        $item->update($request->except(['IdFV', 'Features']));
 
-        if ($request->has('IdFV')) {
+        if ($request->filled('Features')) {
+            $item->values()->sync($this->resolveFeatureValueIds($request->input('Features')));
+        } elseif ($request->has('IdFV')) {
             $item->values()->sync($request->input('IdFV', []));
         }
 
@@ -172,8 +201,8 @@ class AdsController extends Controller
 
         return response()->json([
             'data'       => $item->load(self::FEATURES_RELATIONS),
-            'image_urls' => collect($item->ImageAd)->map(fn($p) => asset($p)),
-            'video_urls' => collect($item->VideoAd)->map(fn($p) => asset($p)),
+            'image_urls' => $this->mediaUrls($item->ImageAd, self::IMAGES_FOLDER),
+            'video_urls' => $this->mediaUrls($item->VideoAd, self::VIDEOS_FOLDER),
         ]);
     }
 
@@ -201,6 +230,48 @@ class AdsController extends Controller
         }
 
         return self::FEATURES_RELATIONS;
+    }
+
+    /**
+     * Turn a list of ["TitleFeature" => .., "ValueFeature" => ..] into an
+     * array of IdFV, creating the Feature and/or the FeaturesValue rows if
+     * they don't already exist. Matching is case-sensitive on the exact
+     * strings you send — send the same TitleFeature you used before if you
+     * want to reuse an existing feature instead of creating a duplicate.
+     */
+    private function resolveFeatureValueIds(array $features): array
+    {
+        $ids = [];
+
+        foreach ($features as $feature) {
+            $titleFeature = trim($feature['TitleFeature'] ?? '');
+            $valueFeature = trim($feature['ValueFeature'] ?? '');
+
+            if ($titleFeature === '' || $valueFeature === '') {
+                continue;
+            }
+
+            $featureModel = Features::firstOrCreate(
+                ['TitleFeature' => $titleFeature],
+                [
+                    'DescriptionFeature' => $feature['DescriptionFeature'] ?? null,
+                    'UnitFeature'        => $feature['UnitFeature'] ?? null,
+                    'Active'             => 1,
+                ]
+            );
+
+            $featureValue = FeaturesValues::firstOrCreate(
+                [
+                    'IdFeature'    => $featureModel->IdFeature,
+                    'ValueFeature' => $valueFeature,
+                ],
+                ['Active' => 1]
+            );
+
+            $ids[] = $featureValue->IdFV;
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**
@@ -246,7 +317,9 @@ class AdsController extends Controller
 
     /**
      * Move uploaded files straight into public/{$folder} (no storage
-     * symlink needed) and return the array of relative paths to save.
+     * symlink needed) and return the array of FILENAMES ONLY to save in
+     * the DB — the file's own original name (e.g. "samsoung.jpg"), not a
+     * generated one.
      *
      * @param  \Illuminate\Http\UploadedFile[]  $files
      */
@@ -258,13 +331,46 @@ class AdsController extends Controller
             mkdir($destination, 0755, true);
         }
 
-        $paths = [];
+        $filenames = [];
         foreach ($files as $file) {
-            $filename = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $filename = $this->uniqueFilename($destination, $file->getClientOriginalName());
             $file->move($destination, $filename);
-            $paths[] = $folder . '/' . $filename;
+            $filenames[] = $filename;
         }
 
-        return $paths;
+        return $filenames;
+    }
+
+    /**
+     * Return the original filename as-is if nothing on disk uses it yet.
+     * If a file with that exact name already exists in the folder, append
+     * a short suffix ("samsoung_1.jpg", "samsoung_2.jpg", ...) so the
+     * earlier upload is never silently overwritten.
+     */
+    private function uniqueFilename(string $destination, string $originalName): string
+    {
+        $filename  = basename($originalName);
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $name      = pathinfo($filename, PATHINFO_FILENAME);
+
+        $candidate = $filename;
+        $i = 1;
+        while (file_exists($destination . DIRECTORY_SEPARATOR . $candidate)) {
+            $candidate = $extension !== ''
+                ? "{$name}_{$i}.{$extension}"
+                : "{$name}_{$i}";
+            $i++;
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * Build full public URLs from the filenames stored in the DB, by
+     * prefixing them with the folder they physically live in.
+     */
+    private function mediaUrls(?array $filenames, string $folder)
+    {
+        return collect($filenames ?? [])->map(fn($filename) => asset($folder . '/' . $filename));
     }
 }

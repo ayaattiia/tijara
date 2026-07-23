@@ -1955,5 +1955,45 @@ ALTER TABLE `users`
 ALTER TABLE `wallets`
   ADD CONSTRAINT `FK_Wallets_Users` FOREIGN KEY (`IdUser`) REFERENCES `users` (`IdUser`);
 
+ALTER TABLE `OrderDetails`
+    ADD UnitPrice DECIMAL(18,3) NOT NULL AFTER Quantity,
+    ADD Discount DECIMAL(18,3) DEFAULT 0 AFTER UnitPrice,
+    ADD TvaRate DECIMAL(5,2) DEFAULT 19 AFTER Discount;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ===============================
+-- DEALS
+-- ===============================
+
+ALTER TABLE Deals
+ADD COLUMN IF NOT EXISTS IdProduct BIGINT(20) NULL AFTER IdDeal;
+
+-- ===============================
+-- PRIZES
+-- ===============================
+
+ALTER TABLE Prizes
+ADD COLUMN IF NOT EXISTS IdDeal INT(11) NULL AFTER idPrize;
+
+-- ===============================
+-- Foreign Keys
+-- ===============================
+
+ALTER TABLE Deals
+ADD CONSTRAINT FK_Deals_Products
+FOREIGN KEY (IdProduct)
+REFERENCES Products(IdProduct)
+ON DELETE CASCADE
+ON UPDATE CASCADE;
+
+ALTER TABLE Prizes
+ADD CONSTRAINT FK_Prizes_Deals
+FOREIGN KEY (IdDeal)
+REFERENCES Deals(IdDeal)
+ON DELETE CASCADE
+ON UPDATE CASCADE;
+
+SET FOREIGN_KEY_CHECKS = 1;
 
 SET FOREIGN_KEY_CHECKS = 1;

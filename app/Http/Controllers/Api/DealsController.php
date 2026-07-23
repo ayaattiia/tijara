@@ -17,14 +17,49 @@ class DealsController extends Controller
     {
         $perPage = $this->resolvePerPage($request);
 
-        $query = $this->buildFilteredQuery(
-            $request,
-            Deals::class,
-            ['titleDeal', 'descriptionDeal', 'detailsDeal', 'locationDeal', 'telephone', 'email'],
-            ['imageDeal', 'idtypecat', 'idCateg', 'idUser', 'idState', 'idPrize', 'active', 'colors', 'likes', 'liked', 'ownerdeals', 'brand'],
-            ['priceDeal', 'discountDeal', 'quantity', 'datePublication', 'dateEnd', 'startDate', 'TotalCount']
-        );
+        $query = Deals::with([
+            'iduser',
+            'idcateg',
+            'idtypecat',
+            'idstate',
+            'idprize'
+        ]);
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('titleDeal', 'LIKE', "%{$search}%")
+                    ->orWhere('descriptionDeal', 'LIKE', "%{$search}%")
+                    ->orWhere('detailsDeal', 'LIKE', "%{$search}%")
+                    ->orWhere('brand', 'LIKE', "%{$search}%")
+                    ->orWhere('locationDeal', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('idUser')) {
+            $query->where('idUser', $request->idUser);
+        }
+
+        if ($request->filled('idPrize')) {
+            $query->where('idPrize', $request->idPrize);
+        }
+
+        if ($request->filled('idCateg')) {
+            $query->where('idCateg', $request->idCateg);
+        }
+
+        if ($request->filled('active')) {
+            $query->where('active', $request->active);
+        }
+
+        if ($request->filled('price_min')) {
+            $query->where('priceDeal', '>=', $request->price_min);
+        }
+
+        if ($request->filled('price_max')) {
+            $query->where('priceDeal', '<=', $request->price_max);
+        }
         return response()->json($query->paginate($perPage));
     }
 

@@ -8,7 +8,7 @@
 -- ============================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET NAMES utf8mb4;  
+SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
@@ -977,6 +977,49 @@ INSERT INTO `orderdetails` (`IdOrderDeatils`, `IdUser`, `IdProduct`, `IdState`, 
 (29, 29, 29, 29, 11, 29, 1190, 'Ben Arous Centre', 'farah.mejri@gmail.com', '20000019', 'Farah', 'Mejri', 2, '550', '2026-07-20 10:00:00', 1),
 (30, 30, 30, 30, 11, 30, 1200, 'Manouba Centre', 'bilel.rezgui@gmail.com', '20000020', 'Bilel', 'Rezgui', 3, '1200', '2026-07-21 10:00:00', 1);
 
+INSERT INTO `orderdetails`
+(`IdOrderDeatils`, `IdUser`, `IdProduct`, `IdState`, `IdCountry`, `IdOrder`,
+ `ZipCode`, `Address`, `Email`, `Telephone`, `FirstName`, `LastName`,
+ `Quantity`, `TotalAmount`, `DateTimeCommand`, `Active`)
+VALUES
+
+-- Order 12 (Sarra Trabelsi) -> 2 products total
+(31, 12, 2, 12, 11, 12,
+ 1020, 'La Marsa Centre', 'sarra.trabelsi@gmail.com', '20000002', 'Sarra', 'Trabelsi',
+ 2, '240', '2026-07-03 10:00:00', 1),
+
+-- Order 13 (Ali Mansour) -> 3 products total
+(32, 13, 3, 13, 11, 13,
+ 1030, 'Sousse Centre', 'ali.mansour@gmail.com', '20000003', 'Ali', 'Mansour',
+ 1, '550', '2026-07-04 10:00:00', 1),
+(33, 13, 9, 13, 11, 13,
+ 1030, 'Sousse Centre', 'ali.mansour@gmail.com', '20000003', 'Ali', 'Mansour',
+ 3, '285', '2026-07-04 10:00:00', 1),
+
+-- Order 17 (Lina Haddad) -> 4 products total  ★ use this one to test
+(34, 17, 6, 17, 11, 17,
+ 1070, 'Nabeul Centre', 'lina.haddad@gmail.com', '20000007', 'Lina', 'Haddad',
+ 1, '420', '2026-07-08 10:00:00', 1),
+(35, 17, 8, 17, 11, 17,
+ 1070, 'Nabeul Centre', 'lina.haddad@gmail.com', '20000007', 'Lina', 'Haddad',
+ 1, '1200', '2026-07-08 10:00:00', 1),
+(36, 17, 15, 17, 11, 17,
+ 1070, 'Nabeul Centre', 'lina.haddad@gmail.com', '20000007', 'Lina', 'Haddad',
+ 2, '700', '2026-07-08 10:00:00', 1),
+
+-- Order 16 (Nour Jaziri) -> 5 products total
+(37, 16, 4, 16, 11, 16,
+ 1060, 'Ariana Centre', 'nour.jaziri@gmail.com', '20000006', 'Nour', 'Jaziri',
+ 1, '2700', '2026-07-07 10:00:00', 1),
+(38, 16, 7, 16, 11, 16,
+ 1060, 'Ariana Centre', 'nour.jaziri@gmail.com', '20000006', 'Nour', 'Jaziri',
+ 1, '3200', '2026-07-07 10:00:00', 1),
+(39, 16, 10, 16, 11, 16,
+ 1060, 'Ariana Centre', 'nour.jaziri@gmail.com', '20000006', 'Nour', 'Jaziri',
+ 1, '3400', '2026-07-07 10:00:00', 1),
+(40, 16, 11, 16, 11, 16,
+ 1060, 'Ariana Centre', 'nour.jaziri@gmail.com', '20000006', 'Nour', 'Jaziri',
+ 1, '1800', '2026-07-07 10:00:00', 1);
 --
 -- Déchargement des données de la table `orders`
 --
@@ -1668,6 +1711,162 @@ INSERT INTO `wishlistdeals` (`IdWish`, `IdUser`, `IdDeal`, `CreatedAt`) VALUES
 (29, 29, 30, '2026-07-20 09:00:00'),
 (30, 30, 11, '2026-07-21 09:00:00');
 
+INSERT INTO Vendors
+(
+    CompanyName,
+    TradeName,
+    TaxNumber,
+    VATNumber,
+    Address,
+    City,
+    Country,
+    PostalCode,
+    Telephone,
+    Mobile,
+    Email,
+    Website,
+    Logo,
+    BankName,
+    BankAccount,
+    IBAN,
+    SWIFT,
+    Active,
+    CreatedAt,
+    UpdatedAt
+)
+VALUES
+(
+    'TIJARA Technologies',
+    'TIJARA',
+    '1485926PAM000',
+    'TN1485926',
+    'Avenue Habib Bourguiba',
+    'Sousse',
+    'Tunisia',
+    '4000',
+    '73200000',
+    '98403689',
+    'contact@tijara.tn',
+    'https://tijara.tn',
+    'vendors/default-logo.png',
+    'BIAT',
+    '123456789012345',
+    'TN5901000601234567890123',
+    'BIATTNTT',
+    1,
+    NOW(),
+    NOW()
+);
+
+UPDATE Coupons
+SET
+    Used = CASE
+        WHEN Title = 'BLACKFRIDAY30' THEN 1
+        ELSE 0
+    END,
+
+    Active = CASE
+        WHEN Title = 'WELCOME15' THEN 0
+        ELSE 1
+    END,
+
+    DateStart = CASE
+        WHEN Title = 'SUMMER10' THEN '2026-06-01 00:00:00'          -- Expired
+        WHEN Title = 'VIP25' THEN '2026-08-01 00:00:00'             -- Not active yet
+        ELSE '2026-07-01 00:00:00'                                  -- Active
+    END,
+
+    DateEnd = CASE
+        WHEN Title = 'SUMMER10' THEN '2026-07-15 23:59:59'          -- Expired
+        WHEN Title = 'VIP25' THEN '2026-09-01 23:59:59'
+        ELSE '2026-08-31 23:59:59'
+    END;
+
+    SET FOREIGN_KEY_CHECKS = 0;
+
+-- ===================================
+-- ACTIVATE DATA
+-- ===================================
+
+UPDATE Products SET Active = 1;
+
+UPDATE Deals SET active = 1;
+
+UPDATE Prizes SET active = 1;
+
+UPDATE Ads SET Active = 1;
+
+-- ===================================
+-- CONNECT DEALS -> PRODUCTS
+-- ===================================
+
+UPDATE Deals d
+JOIN Products p
+ON d.titleDeal LIKE CONCAT('%', p.TitleProduct, '%')
+SET d.IdProduct = p.IdProduct;
+
+-- ===================================
+-- CONNECT PRIZES -> DEALS
+-- ===================================
+
+UPDATE Prizes p
+JOIN Deals d
+ON d.idPrize = p.idPrize
+SET p.IdDeal = d.IdDeal;
+
+-- ===================================
+-- CONNECT PRODUCTS -> PRIZES
+-- ===================================
+
+UPDATE Products p
+JOIN Deals d
+ON p.IdProduct = d.IdProduct
+SET p.IdPrize = d.idPrize;
+
+-- ===================================
+-- SYNCHRONIZE USERS
+-- ===================================
+
+UPDATE Deals d
+JOIN Products p
+ON d.IdProduct = p.IdProduct
+SET d.idUser = p.IdUser;
+
+-- ===================================
+-- SYNCHRONIZE CATEGORIES
+-- ===================================
+
+UPDATE Deals d
+JOIN Products p
+ON d.IdProduct = p.IdProduct
+SET d.idCateg = p.IdCateg;
+
+-- ===================================
+-- SYNCHRONIZE PRIZE OWNER
+-- ===================================
+
+UPDATE Prizes p
+JOIN Deals d
+ON p.IdDeal = d.IdDeal
+SET p.idUser = d.idUser;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+
+ALTER TABLE `roles` ADD UNIQUE KEY `uq_role_name` (`RoleUser`);
+
+UPDATE `users` SET `IdRole` = 1  WHERE `IdRole` = 11; -- User
+UPDATE `users` SET `IdRole` = 2  WHERE `IdRole` = 12; -- Entreprise
+UPDATE `users` SET `IdRole` = 3  WHERE `IdRole` = 13; -- Admin
+UPDATE `users` SET `IdRole` = 4  WHERE `IdRole` = 14; -- Moderator
+UPDATE `users` SET `IdRole` = 5  WHERE `IdRole` = 15; -- Vendor
+UPDATE `users` SET `IdRole` = 6  WHERE `IdRole` = 16; -- Customer
+UPDATE `users` SET `IdRole` = 7  WHERE `IdRole` = 29; -- Partner
+UPDATE `users` SET `IdRole` = 8  WHERE `IdRole` = 18; -- Manager
+UPDATE `users` SET `IdRole` = 9  WHERE `IdRole` = 17; -- Support
+UPDATE `users` SET `IdRole` = 10 WHERE `IdRole` = 30; -- Guest
+
+DELETE FROM `roles` WHERE `IdRole` IN (11, 12, 13, 14, 15, 16, 17, 18, 29, 30);
 
 COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;

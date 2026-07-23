@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Products;
+use App\Models\Features;
+use App\Models\FeaturesValues;
 use Illuminate\Http\Request;
 
 class ProductsController extends Controller
@@ -53,15 +55,25 @@ class ProductsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'TitleProduct'    => 'required|string|max:250',
-            'DescriptionProduct' => 'nullable|string',
-            'PriceProduct'    => 'required',
-            'ImageProduct'    => 'nullable|array',
-            'ImageProduct.*'  => 'string|max:2048', // accepts uploaded files OR plain path/URL strings, checked below
-            'VideoProduct'    => 'nullable|array',
-            'VideoProduct.*'  => 'string|max:2048',
-            'IdFV'            => 'nullable|array',
-            'IdFV.*'          => 'integer|exists:FeaturesValues,IdFV',
+            'TitleProduct'        => 'required|string|max:250',
+            'DescriptionProduct'  => 'nullable|string',
+            'PriceProduct'        => 'required',
+            'ImageProduct'        => 'nullable|array',
+            'ImageProduct.*'      => 'string|max:2048', // accepts uploaded files OR plain path/URL strings, checked below
+            'VideoProduct'        => 'nullable|array',
+            'VideoProduct.*'      => 'string|max:2048',
+
+            // Legacy: still accepted if you already know the IdFV(s)
+            'IdFV'                => 'nullable|array',
+            'IdFV.*'              => 'integer|exists:FeaturesValues,IdFV',
+
+            // New: pass the feature name + value directly, no IdFV needed.
+            // If the Feature or the FeaturesValue doesn't exist yet, it is created.
+            'Features'                        => 'nullable|array',
+            'Features.*.TitleFeature'         => 'required_with:Features|string|max:250',
+            'Features.*.ValueFeature'         => 'required_with:Features|string|max:250',
+            'Features.*.UnitFeature'          => 'nullable|string|max:100',
+            'Features.*.DescriptionFeature'   => 'nullable|string',
         ]);
 
         if ($request->hasFile('ImageProduct')) {
@@ -71,7 +83,7 @@ class ProductsController extends Controller
             $request->validate(['VideoProduct.*' => 'mimes:mp4,mov,avi,webm|max:' . self::MAX_VIDEO_KB]);
         }
 
-        $data = $request->except(['ImageProduct', 'VideoProduct', 'IdFV']);
+        $data = $request->except(['ImageProduct', 'VideoProduct', 'IdFV', 'Features']);
 
         if ($request->hasFile('ImageProduct')) {
             $data['ImageProduct'] = $this->storeMediaFiles($request->file('ImageProduct'), self::IMAGES_FOLDER);
@@ -87,14 +99,23 @@ class ProductsController extends Controller
 
         $item = Products::create($data);
 
-        if ($request->filled('IdFV')) {
-            $item->values()->sync($request->input('IdFV'));
+        // Resolve/attach feature values: prefer the new name-based "Features"
+        // input, fall back to raw "IdFV" if that's what was sent instead.
+        $idFVs = [];
+        if ($request->filled('Features')) {
+            $idFVs = $this->resolveFeatureValueIds($request->input('Features'));
+        } elseif ($request->filled('IdFV')) {
+            $idFVs = $request->input('IdFV');
+        }
+
+        if (!empty($idFVs)) {
+            $item->values()->sync($idFVs);
         }
 
         return response()->json([
             'data'       => $item->load(self::FEATURES_RELATIONS),
-            'image_urls' => collect($item->ImageProduct)->map(fn($p) => asset($p)),
-            'video_urls' => collect($item->VideoProduct)->map(fn($p) => asset($p)),
+            'image_urls' => $this->mediaUrls($item->ImageProduct, self::IMAGES_FOLDER),
+            'video_urls' => $this->mediaUrls($item->VideoProduct, self::VIDEOS_FOLDER),
         ], 201);
     }
 
@@ -113,12 +134,20 @@ class ProductsController extends Controller
         $request->validate([
             'IdFV'   => 'nullable|array',
             'IdFV.*' => 'integer|exists:FeaturesValues,IdFV',
+
+            'Features'                      => 'nullable|array',
+            'Features.*.TitleFeature'       => 'required_with:Features|string|max:250',
+            'Features.*.ValueFeature'       => 'required_with:Features|string|max:250',
+            'Features.*.UnitFeature'        => 'nullable|string|max:100',
+            'Features.*.DescriptionFeature' => 'nullable|string',
         ]);
 
         $item = Products::findOrFail($products);
-        $item->update($request->except('IdFV'));
+        $item->update($request->except(['IdFV', 'Features']));
 
-        if ($request->has('IdFV')) {
+        if ($request->filled('Features')) {
+            $item->values()->sync($this->resolveFeatureValueIds($request->input('Features')));
+        } elseif ($request->has('IdFV')) {
             $item->values()->sync($request->input('IdFV', []));
         }
 
@@ -166,8 +195,8 @@ class ProductsController extends Controller
 
         return response()->json([
             'data'       => $item->load(self::FEATURES_RELATIONS),
-            'image_urls' => collect($item->ImageProduct)->map(fn($p) => asset($p)),
-            'video_urls' => collect($item->VideoProduct)->map(fn($p) => asset($p)),
+            'image_urls' => $this->mediaUrls($item->ImageProduct, self::IMAGES_FOLDER),
+            'video_urls' => $this->mediaUrls($item->VideoProduct, self::VIDEOS_FOLDER),
         ]);
     }
 
@@ -176,6 +205,60 @@ class ProductsController extends Controller
         $item = Products::findOrFail($products);
         $item->delete(); // ProductsFeatureValues rows cleaned up via FK onDelete('cascade')
         return response()->json(null, 204);
+    }
+
+    /**
+     * PUT /api/products/{products}/assign-prize
+     * findOrFail() -> 404 automatically if $products doesn't exist.
+     * 'exists:Prizes,IdPrize' -> 422 automatically if IdPrize doesn't exist.
+     * If the same IdPrize is already attached, returns 409 instead of no-op.
+     */
+    public function assignPrize(Request $request, $products)
+    {
+        $request->validate([
+            'IdPrize' => 'required|integer|exists:Prizes,IdPrize',
+        ]);
+
+        $item = Products::findOrFail($products);
+
+        $currentIdPrize = $item->IdPrize;
+        $newIdPrize     = (int) $request->input('IdPrize');
+
+        // Same prize already assigned -> reject as duplicate
+        if ((int) $currentIdPrize === $newIdPrize) {
+            return response()->json([
+                'message' => 'Prize is already assigned to this product.',
+            ], 409);
+        }
+
+        $item->IdPrize = $newIdPrize;
+        $item->save();
+
+        // Had a different prize before -> this call replaced it
+        if (! is_null($currentIdPrize)) {
+            return response()->json([
+                'message' => 'Prize updated successfully.',
+            ]);
+        }
+
+        // Had no prize before -> this is a fresh assignment
+        return response()->json([
+            'message' => 'Prize assigned successfully.',
+        ]);
+    }
+
+    /**
+     * DELETE /api/products/{products}/remove-prize
+     */
+    public function removePrize($products)
+    {
+        $item = Products::findOrFail($products);
+        $item->IdPrize = null;
+        $item->save();
+
+        return response()->json([
+            'message' => 'Prize removed successfully.',
+        ]);
     }
 
     /**
@@ -195,6 +278,48 @@ class ProductsController extends Controller
         }
 
         return self::FEATURES_RELATIONS;
+    }
+
+    /**
+     * Turn a list of ["TitleFeature" => .., "ValueFeature" => ..] into an
+     * array of IdFV, creating the Feature and/or the FeaturesValue rows if
+     * they don't already exist. Matching is case-sensitive on the exact
+     * strings you send — send the same TitleFeature you used before if you
+     * want to reuse an existing feature instead of creating a duplicate.
+     */
+    private function resolveFeatureValueIds(array $features): array
+    {
+        $ids = [];
+
+        foreach ($features as $feature) {
+            $titleFeature = trim($feature['TitleFeature'] ?? '');
+            $valueFeature = trim($feature['ValueFeature'] ?? '');
+
+            if ($titleFeature === '' || $valueFeature === '') {
+                continue;
+            }
+
+            $featureModel = Features::firstOrCreate(
+                ['TitleFeature' => $titleFeature],
+                [
+                    'DescriptionFeature' => $feature['DescriptionFeature'] ?? null,
+                    'UnitFeature'        => $feature['UnitFeature'] ?? null,
+                    'Active'             => 1,
+                ]
+            );
+
+            $featureValue = FeaturesValues::firstOrCreate(
+                [
+                    'IdFeature'    => $featureModel->IdFeature,
+                    'ValueFeature' => $valueFeature,
+                ],
+                ['Active' => 1]
+            );
+
+            $ids[] = $featureValue->IdFV;
+        }
+
+        return array_values(array_unique($ids));
     }
 
     private function resolvePerPage(Request $request): int
@@ -234,7 +359,9 @@ class ProductsController extends Controller
 
     /**
      * Move uploaded files straight into public/{$folder} (no storage
-     * symlink needed) and return the array of relative paths to save.
+     * symlink needed) and return the array of FILENAMES ONLY to save in
+     * the DB — the file's own original name (e.g. "samsoung.jpg"), not a
+     * generated one.
      *
      * @param  \Illuminate\Http\UploadedFile[]  $files
      */
@@ -246,13 +373,46 @@ class ProductsController extends Controller
             mkdir($destination, 0755, true);
         }
 
-        $paths = [];
+        $filenames = [];
         foreach ($files as $file) {
-            $filename = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $filename = $this->uniqueFilename($destination, $file->getClientOriginalName());
             $file->move($destination, $filename);
-            $paths[] = $folder . '/' . $filename;
+            $filenames[] = $filename;
         }
 
-        return $paths;
+        return $filenames;
+    }
+
+    /**
+     * Return the original filename as-is if nothing on disk uses it yet.
+     * If a file with that exact name already exists in the folder, append
+     * a short suffix ("samsoung_1.jpg", "samsoung_2.jpg", ...) so the
+     * earlier upload is never silently overwritten.
+     */
+    private function uniqueFilename(string $destination, string $originalName): string
+    {
+        $filename  = basename($originalName);
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $name      = pathinfo($filename, PATHINFO_FILENAME);
+
+        $candidate = $filename;
+        $i = 1;
+        while (file_exists($destination . DIRECTORY_SEPARATOR . $candidate)) {
+            $candidate = $extension !== ''
+                ? "{$name}_{$i}.{$extension}"
+                : "{$name}_{$i}";
+            $i++;
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * Build full public URLs from the filenames stored in the DB, by
+     * prefixing them with the folder they physically live in.
+     */
+    private function mediaUrls(?array $filenames, string $folder)
+    {
+        return collect($filenames ?? [])->map(fn($filename) => asset($folder . '/' . $filename));
     }
 }

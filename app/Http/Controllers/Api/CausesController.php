@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CausesReports;
 use Illuminate\Http\Request;
 
-class CausesReportsController extends Controller
+class CausesController extends Controller
 {
     // Centralize the default/min/max so you can tweak them in one place
     private const DEFAULT_PER_PAGE = 10;

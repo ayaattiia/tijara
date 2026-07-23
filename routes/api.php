@@ -54,6 +54,7 @@ use App\Http\Controllers\Api\TransportsController;
 use App\Http\Controllers\Api\TypeCategoryController;
 use App\Http\Controllers\Api\UserFollowsController;
 use App\Http\Controllers\Api\UsersController;
+use App\Http\Controllers\Api\VendorsController;
 use App\Http\Controllers\Api\WalletsController;
 use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
@@ -136,6 +137,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('winners', WinnersController::class);
     Route::apiResource('wishlist-ads', WishlistAdsController::class);
     Route::apiResource('wishlist-deals', WishlistDealsController::class);
+    Route::apiResource('vendors', VendorsController::class);
 });
 
 // ---- Routes publiques (non auth) ----
@@ -169,3 +171,64 @@ Route::get('/ads/active/{Active}', [AdsController::class, 'byActive']);
 Route::post('ads/{ads}/media', [AdsController::class, 'addMedia']);
 
 Route::post('products/{products}/media', [ProductsController::class, 'addMedia']); // add photo/video to existing product
+
+Route::get(
+    '/invoices/{number}/pdf',
+    [InvoicesController::class, 'downloadPDF']
+);
+Route::get(
+    '/invoices/number/{number}',
+    [InvoicesController::class, 'showByNumber']
+);
+Route::post(
+    '/invoices/{number}/pay',
+    [InvoicesController::class, 'pay']
+);
+Route::post(
+    '/invoices/{number}/cancel',
+    [InvoicesController::class, 'cancel']
+);
+Route::get(
+    '/invoices/statistics',
+    [InvoicesController::class, 'statistics']
+);
+Route::get(
+    '/invoices/revenue/monthly',
+    [InvoicesController::class, 'monthlyRevenue']
+);
+Route::get(
+    '/customers/{id}/invoices',
+    [InvoicesController::class, 'customerInvoices']
+);
+Route::get(
+    '/vendors/{id}/invoices',
+    [InvoicesController::class, 'vendorInvoices']
+);
+Route::get(
+    '/invoices/{id}/pdf',
+    [InvoicesController::class, 'downloadPDF']
+);
+
+
+Route::post('/coupons/validate', [CouponsController::class, 'validateCoupon']);
+Route::middleware('auth:api')->group(function () {
+
+    Route::put(
+        '/products/{product}/assign-prize',
+        [ProductsController::class, 'assignPrize']
+    );
+
+    Route::delete(
+        '/products/{product}/remove-prize',
+        [ProductsController::class, 'removePrize']
+    );
+
+    // Only admins can create/update/delete prizes -> gives the 403 for a
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware('admin')->group(function () {
+            Route::patch('prizes/{prizes}/activate', [PrizesController::class, 'activate']);
+            Route::patch('ads/{ads}/activate', [AdsController::class, 'activate']);
+            Route::patch('products/{products}/activate', [ProductsController::class, 'activate']);
+        });
+    });
+});

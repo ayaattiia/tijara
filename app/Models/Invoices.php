@@ -36,7 +36,10 @@ class Invoices extends Model
 
     public function vendor()
     {
-        return $this->belongsTo(\App\Models\Users::class, 'IdVendor', 'IdUser');
+        return $this->belongsTo(
+            Vendor::class,
+            'IdVendor',
+            'IdVendor'
+        );
     }
-
 }

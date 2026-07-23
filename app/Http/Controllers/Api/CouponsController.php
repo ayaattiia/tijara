@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Coupons;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CouponsController extends Controller
@@ -65,5 +66,57 @@ class CouponsController extends Controller
 
         // Guard against negatives or absurdly large values
         return max(self::MIN_PER_PAGE, min($perPage, self::MAX_PER_PAGE));
+    }
+
+    public function validateCoupon(Request $request)
+    {
+        $request->validate([
+            'Title' => 'required|string'
+        ]);
+
+        $coupon = Coupons::where('Title', $request->Title)->first();
+
+        if (!$coupon) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Coupon not found.'
+            ], 404);
+        }
+
+        if (!$coupon->Active) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Coupon is inactive.'
+            ], 400);
+        }
+
+        $today = Carbon::now();
+
+        if ($today->lt(Carbon::parse($coupon->DateStart))) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Coupon is not active yet.'
+            ], 400);
+        }
+
+        if ($today->gt(Carbon::parse($coupon->DateEnd))) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Coupon has expired.'
+            ], 400);
+        }
+
+        if ($coupon->Used == 1) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Coupon has already been used.'
+            ], 400);
+        }
+
+        return response()->json([
+            'valid' => true,
+            'message' => 'Coupon is valid.',
+            'coupon' => $coupon
+        ]);
     }
 }

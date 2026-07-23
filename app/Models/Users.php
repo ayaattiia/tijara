@@ -70,4 +70,13 @@ class Users extends Authenticatable
     {
         return $this->belongsTo(\App\Models\Countries::class, 'IdCountry', 'IdCountry');
     }
+
+    public function invoices()
+    {
+        return $this->hasMany(
+            \App\Models\Invoices::class,
+            'IdUser',
+            'IdUser'
+        );
+    }
 }

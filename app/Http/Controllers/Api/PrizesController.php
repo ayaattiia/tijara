@@ -44,10 +44,30 @@ class PrizesController extends Controller
     public function update(Request $request, $prizes)
     {
         $item = Prizes::findOrFail($prizes);
-        $item->update($request->all());
+
+        // 'active' can only be changed via the dedicated activate() endpoint
+        $item->update($request->except('active'));
+
         return response()->json($item);
     }
 
+    /**
+     * PATCH /api/prizes/{prizes}/activate   (admin only)
+     */
+    public function activate(Request $request, $prizes)
+    {
+        $request->validate(['active' => 'required|boolean']);
+
+        $item = Prizes::findOrFail($prizes);
+        $item->active = $request->boolean('active');
+        $item->save();
+
+        return response()->json([
+            'message' => $item->active
+                ? 'Prize activated successfully.'
+                : 'Prize deactivated successfully.'
+        ]);
+    }
     public function destroy($prizes)
     {
         $item = Prizes::findOrFail($prizes);
