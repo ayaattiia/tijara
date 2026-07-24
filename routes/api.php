@@ -146,6 +146,8 @@ Route::post('/products', [ProductsController::class, 'store']);
 Route::get('/products/{products}', [ProductsController::class, 'show']);
 Route::put('/products/{products}', [ProductsController::class, 'update']);
 Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
+Route::delete('/products/{products}/photos', [ProductsController::class, 'removePhoto']);
+Route::delete('/products/{products}/videos', [ProductsController::class, 'removeVideo']);
 
 Route::get('/products/search/{search}', [ProductsController::class, 'search']);
 Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCategory']);

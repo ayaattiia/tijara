@@ -415,4 +415,97 @@ class ProductsController extends Controller
     {
         return collect($filenames ?? [])->map(fn($filename) => asset($folder . '/' . $filename));
     }
+
+
+
+    public function removePhoto(Request $request, $products)
+{
+    $request->validate([
+        'index' => 'required|integer|min:0',
+    ]);
+
+    $item = Products::findOrFail($products);
+
+    $photos = $this->normalizeMediaArray($item->getRawOriginal('ImageProduct'));
+
+    $index = (int) $request->query('index');
+
+    if (!isset($photos[$index])) {
+        return response()->json([
+            'message' => 'Photo not found.'
+        ], 404);
+    }
+
+    $filename = $photos[$index];
+
+    $file = public_path(self::IMAGES_FOLDER . '/' . $filename);
+
+    if (file_exists($file)) {
+        unlink($file);
+    }
+
+    unset($photos[$index]);
+
+    $photos = array_values($photos);
+
+    $item->update([
+        'ImageProduct' => $photos
+    ]);
+
+    return response()->json([
+        'message' => 'Photo removed successfully.',
+        'data' => $item->fresh(),
+        'image_urls' => $this->mediaUrls(
+            $item->fresh()->ImageProduct,
+            self::IMAGES_FOLDER
+        ),
+    ]);
+}
+
+
+public function removeVideo(Request $request, $products)
+{
+    $request->validate([
+        'index' => 'required|integer|min:0',
+    ]);
+
+    $item = Products::findOrFail($products);
+
+    $videos = $this->normalizeMediaArray($item->getRawOriginal('VideoProduct'));
+
+    $index = (int) $request->query('index');
+
+    if (!isset($videos[$index])) {
+        return response()->json([
+            'message' => 'Video not found.'
+        ], 404);
+    }
+
+    $filename = $videos[$index];
+
+    $file = public_path(self::VIDEOS_FOLDER . '/' . $filename);
+
+    if (file_exists($file)) {
+        unlink($file);
+    }
+
+    unset($videos[$index]);
+
+    $videos = array_values($videos);
+
+    $item->update([
+        'VideoProduct' => $videos
+    ]);
+
+    return response()->json([
+        'message' => 'Video removed successfully.',
+        'data' => $item->fresh(),
+        'video_urls' => $this->mediaUrls(
+            $item->fresh()->VideoProduct,
+            self::VIDEOS_FOLDER
+        ),
+    ]);
+}
+
+
 }
