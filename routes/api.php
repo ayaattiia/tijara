@@ -61,7 +61,13 @@ use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
 
 
-// ---- Routes publiques (auth) ----
+/*
+|--------------------------------------------------------------------------
+| 1) ROUTES PUBLIQUES — pas d'authentification requise
+|    (navigation/consultation, comme un visiteur non connecte sur Wamia.tn)
+|--------------------------------------------------------------------------
+*/
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -69,90 +75,10 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::get('/auth/facebook', [AuthController::class, 'redirectToFacebook']);
 Route::get('/auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
-// ---- Routes protegees par Passport ----
-Route::middleware('auth:api')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me', [AuthController::class, 'me']);
 
-    Route::apiResource('ad-comments', AdCommentsController::class);
-    Route::apiResource('ad-likes', AdLikesController::class);
-    Route::apiResource('admin-settings', AdminSettingsController::class);
-
-
-    Route::delete('ads-wishlist/remove', [AdsWishlistController::class, 'removeFromWishlist']);
-    Route::apiResource('ads-wishlist', AdsWishlistController::class);
-    Route::apiResource('boost-ads-packs', BoostAdsPacksController::class);
-    Route::apiResource('boosts', BoostsController::class);
-    Route::apiResource('brands', BrandsController::class);
-
-
-    Route::get('categories-roots', [CategoriesController::class, 'roots']);
-    Route::get('categories/{categories}/children', [CategoriesController::class, 'children']);
-    Route::apiResource('categories', CategoriesController::class);
-
-
-    Route::apiResource('causes', CausesController::class);
-    Route::apiResource('causes-reports', CausesReportsController::class);
-    Route::apiResource('chat-messages', ChatMessagesController::class);
-    Route::apiResource('chats', ChatsController::class);
-    Route::apiResource('cities', CitiesController::class);
-    Route::apiResource('comments', CommentsController::class);
-    Route::apiResource('countries', CountriesController::class);
-    Route::apiResource('countries-full', CountriesFullController::class);
-    Route::apiResource('coupons', CouponsController::class);
-    Route::apiResource('deals', DealsController::class);
-    Route::delete('deals-wishlist/remove', [DealsWishlistController::class, 'removeFromWishlist']);
-
-    Route::apiResource('deals-wishlist', DealsWishlistController::class);
-    Route::apiResource('deliveries', DeliveriesController::class);
-    Route::apiResource('email-tokens', EmailTokensController::class);
-    Route::apiResource('errors', ErrorsController::class);
-    Route::apiResource('feature-categories', FeatureCategoriesController::class);
-    Route::apiResource('features', FeaturesController::class);
-    Route::apiResource('features-values', FeaturesValuesController::class);
-    Route::apiResource('invoices', InvoicesController::class);
-    Route::apiResource('labels', LabelsController::class);
-    Route::apiResource('likes', LikesController::class);
-    Route::apiResource('list-permissions', ListPermissionsController::class);
-    Route::apiResource('messages', MessagesController::class);
-    Route::apiResource('notifications', NotificationsController::class);
-    Route::apiResource('order-details', OrderDetailsController::class);
-    Route::apiResource('orders', OrdersController::class);
-    Route::apiResource('payments', PaymentsController::class);
-    Route::apiResource('permissions', PermissionsController::class);
-    Route::apiResource('point-packets', PointPacketsController::class);
-    Route::apiResource('prizes', PrizesController::class);
-    Route::apiResource('products', ProductsController::class);
-    Route::delete('product-wishlist/remove', [ProductWishlistController::class, 'removeFromWishlist']);
-
-    Route::apiResource('product-wishlist', ProductWishlistController::class);
-    Route::apiResource('ratings', RatingsController::class);
-    Route::apiResource('reports', ReportsController::class);
-    Route::apiResource('reviews', ReviewsController::class);
-    Route::apiResource('roles', RolesController::class);
-    Route::apiResource('sms-logs', SmsLogsController::class);
-    Route::apiResource('states', StatesController::class);
-    Route::apiResource('tags', TagsController::class);
-    Route::apiResource('transports', TransportsController::class);
-    Route::apiResource('type-category', TypeCategoryController::class);
-    Route::apiResource('user-follows', UserFollowsController::class);
-    Route::apiResource('users', UsersController::class);
-    Route::apiResource('wallets', WalletsController::class);
-    Route::apiResource('winners', WinnersController::class);
-    Route::apiResource('wishlist-ads', WishlistAdsController::class);
-    Route::apiResource('wishlist-deals', WishlistDealsController::class);
-    Route::apiResource('vendors', VendorsController::class);
-});
-
-// ---- Routes publiques (non auth) ----
+// Consultation publique du catalogue
 Route::get('/products', [ProductsController::class, 'index']);
-Route::post('/products', [ProductsController::class, 'store']);
 Route::get('/products/{products}', [ProductsController::class, 'show']);
-Route::put('/products/{products}', [ProductsController::class, 'update']);
-Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
-Route::delete('/products/{products}/photos', [ProductsController::class, 'removePhoto']);
-Route::delete('/products/{products}/videos', [ProductsController::class, 'removeVideo']);
-
 Route::get('/products/search/{search}', [ProductsController::class, 'search']);
 Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCategory']);
 Route::get('/products/user/{IdUser}', [ProductsController::class, 'byUser']);
@@ -161,12 +87,6 @@ Route::get('/products/active/{Active}', [ProductsController::class, 'byActive'])
 
 Route::get('/ads', [AdsController::class, 'index']);
 Route::get('/ads/{ads}', [AdsController::class, 'show']);
-Route::post('/ads', [AdsController::class, 'store']);
-Route::put('/ads/{ads}', [AdsController::class, 'update']);
-Route::delete('/ads/{ads}', [AdsController::class, 'destroy']);
-Route::delete('/ads/{ads}/photos', [AdsController::class, 'removePhoto']);
-Route::delete('/ads/{ads}/videos', [AdsController::class, 'removeVideo']);
-
 Route::get('/ads/search/{search}', [AdsController::class, 'search']);
 Route::get('/ads/category/{IdCateg}', [AdsController::class, 'byCategory']);
 Route::get('/ads/typecat/{Idtypecat}', [AdsController::class, 'byTypeCat']);
@@ -176,74 +96,193 @@ Route::get('/ads/user/{IdUser}', [AdsController::class, 'byUser']);
 Route::get('/ads/price/{min_price}/{max_price}', [AdsController::class, 'byPriceRange']);
 Route::get('/ads/active/{Active}', [AdsController::class, 'byActive']);
 
-Route::post('ads/{ads}/media', [AdsController::class, 'addMedia']);
+Route::get('/deals', [DealsController::class, 'index']);
+Route::get('/deals/{deals}', [DealsController::class, 'show']);
 
-Route::post('products/{products}/media', [ProductsController::class, 'addMedia']); // add photo/video to existing product
-
-Route::get(
-    '/invoices/{number}/pdf',
-    [InvoicesController::class, 'downloadPDF']
-);
-Route::get(
-    '/invoices/number/{number}',
-    [InvoicesController::class, 'showByNumber']
-);
-Route::post(
-    '/invoices/{number}/pay',
-    [InvoicesController::class, 'pay']
-);
-Route::post(
-    '/invoices/{number}/cancel',
-    [InvoicesController::class, 'cancel']
-);
-Route::get(
-    '/invoices/statistics',
-    [InvoicesController::class, 'statistics']
-);
-Route::get(
-    '/invoices/revenue/monthly',
-    [InvoicesController::class, 'monthlyRevenue']
-);
-Route::get(
-    '/customers/{id}/invoices',
-    [InvoicesController::class, 'customerInvoices']
-);
-Route::get(
-    '/vendors/{id}/invoices',
-    [InvoicesController::class, 'vendorInvoices']
-);
-Route::get(
-    '/invoices/{id}/pdf',
-    [InvoicesController::class, 'downloadPDF']
-);
-
+Route::get('/categories-roots', [CategoriesController::class, 'roots']);
+Route::get('/categories/{categories}/children', [CategoriesController::class, 'children']);
 
 Route::post('/coupons/validate', [CouponsController::class, 'validateCoupon']);
+
+Route::get('/invoices/{number}/pdf', [InvoicesController::class, 'downloadPDF']);
+Route::get('/invoices/number/{number}', [InvoicesController::class, 'showByNumber']);
+Route::post('/invoices/{number}/pay', [InvoicesController::class, 'pay']);
+Route::post('/invoices/{number}/cancel', [InvoicesController::class, 'cancel']);
+Route::get('/invoices/{id}/pdf', [InvoicesController::class, 'downloadPDF']);
+
+
+/*
+|--------------------------------------------------------------------------
+| 2) ROUTES UTILISATEUR CONNECTE (auth:api) — cote "acheteur"
+|    IdRole = 1 (user), mais aussi accessible a 2 (entreprise) et 3 (admin)
+|    puisque ce sont toutes des actions d'achat/interaction standard
+|--------------------------------------------------------------------------
+*/
+
 Route::middleware('auth:api')->group(function () {
 
-    Route::put(
-        '/products/{product}/assign-prize',
-        [ProductsController::class, 'assignPrize']
-    );
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
 
-    Route::delete(
-        '/products/{product}/remove-prize',
-        [ProductsController::class, 'removePrize']
-    );
+    // ---- Wishlists (cote acheteur) ----
+    Route::post('/ads-wishlist/add', [AdsWishlistController::class, 'addToWishlist']);
+    Route::delete('/ads-wishlist/remove', [AdsWishlistController::class, 'removeFromWishlist']);
+    Route::apiResource('ads-wishlist', AdsWishlistController::class);
 
-    // Only admins can create/update/delete prizes -> gives the 403 for a
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::middleware('admin')->group(function () {
-            Route::patch('prizes/{prizes}/activate', [PrizesController::class, 'activate']);
-            Route::patch('ads/{ads}/activate', [AdsController::class, 'activate']);
-            Route::patch('products/{products}/activate', [ProductsController::class, 'activate']);
-        });
-    });
+    Route::post('/deals-wishlist/add', [DealsWishlistController::class, 'addToWishlist']);
+    Route::delete('/deals-wishlist/remove', [DealsWishlistController::class, 'removeFromWishlist']);
+    Route::apiResource('deals-wishlist', DealsWishlistController::class);
+
+    Route::post('/product-wishlist/add', [ProductWishlistController::class, 'addToWishlist']);
+    Route::delete('/product-wishlist/remove', [ProductWishlistController::class, 'removeFromWishlist']);
+    Route::apiResource('product-wishlist', ProductWishlistController::class);
+
+    Route::apiResource('wishlist-ads', WishlistAdsController::class);
+    Route::apiResource('wishlist-deals', WishlistDealsController::class);
+
+    // ---- Interactions sociales ----
+    Route::apiResource('ad-comments', AdCommentsController::class);
+    Route::apiResource('ad-likes', AdLikesController::class);
+    Route::apiResource('comments', CommentsController::class);
+    Route::apiResource('likes', LikesController::class);
+    Route::apiResource('reviews', ReviewsController::class);
+    Route::apiResource('ratings', RatingsController::class);
+    Route::apiResource('messages', MessagesController::class);
+    Route::apiResource('chats', ChatsController::class);
+    Route::apiResource('chat-messages', ChatMessagesController::class);
+    Route::apiResource('notifications', NotificationsController::class);
+    Route::apiResource('user-follows', UserFollowsController::class);
+    Route::apiResource('tags', TagsController::class);
+
+    // ---- Commandes / paiements / livraisons (les siennes, cote acheteur) ----
+    Route::apiResource('orders', OrdersController::class);
+    Route::apiResource('order-details', OrderDetailsController::class);
+    Route::get('/order-details/total/{idOrder}', [OrderDetailsController::class, 'total']);
+    Route::apiResource('payments', PaymentsController::class);
+    Route::apiResource('deliveries', DeliveriesController::class);
+    Route::apiResource('invoices', InvoicesController::class)->only(['show', 'store', 'update']);
+    Route::get('/customers/{id}/invoices', [InvoicesController::class, 'customerInvoices']);
+
+    // ---- Profil / compte ----
+    Route::apiResource('users', UsersController::class);
+    Route::apiResource('wallets', WalletsController::class);
+    Route::apiResource('email-tokens', EmailTokensController::class);
+
+    // ---- Signalements ----
+    Route::apiResource('reports', ReportsController::class);
+
+    // ---- Referentiels en lecture seule ----
+    Route::apiResource('categories', CategoriesController::class)->only(['index', 'show']);
+    Route::apiResource('brands', BrandsController::class)->only(['index', 'show']);
+    Route::apiResource('cities', CitiesController::class)->only(['index', 'show']);
+    Route::apiResource('countries', CountriesController::class)->only(['index', 'show']);
+    Route::apiResource('countries-full', CountriesFullController::class)->only(['index', 'show']);
+    Route::apiResource('states', StatesController::class)->only(['index', 'show']);
+    Route::apiResource('causes', CausesController::class)->only(['index', 'show']);
+    Route::apiResource('features', FeaturesController::class)->only(['index', 'show']);
+    Route::apiResource('features-values', FeaturesValuesController::class)->only(['index', 'show']);
+    Route::apiResource('feature-categories', FeatureCategoriesController::class)->only(['index', 'show']);
+    Route::apiResource('transports', TransportsController::class)->only(['index', 'show']);
+    Route::apiResource('type-category', TypeCategoryController::class)->only(['index', 'show']);
+    Route::apiResource('labels', LabelsController::class)->only(['index', 'show']);
+    Route::apiResource('point-packets', PointPacketsController::class)->only(['index', 'show']);
+    Route::apiResource('coupons', CouponsController::class)->only(['index', 'show']);
+    Route::apiResource('prizes', PrizesController::class)->only(['index', 'show']);
 });
 
-Route::get('order-details/total/{idOrder}', [App\Http\Controllers\Api\OrderDetailsController::class, 'total']);
 
-Route::post('ads-wishlist/add', [App\Http\Controllers\Api\AdsWishlistController::class, 'addToWishlist']);
+/*
+|--------------------------------------------------------------------------
+| 3) ROUTES ENTREPRISE (VENDEUR) — auth:api + middleware 'entreprise'
+|    IdRole = 2. C'est ici que vit toute la logique "vendeur" (comme
+|    l'espace pro sur Wamia.tn) : publier/gerer ses annonces, produits,
+|    deals, booster ses publications, consulter ses ventes.
+|--------------------------------------------------------------------------
+*/
 
-Route::post('deals-wishlist/add', [DealsWishlistController::class, 'addToWishlist']);
-Route::post('product-wishlist/add', [ProductWishlistController::class, 'addToWishlist']);
+Route::middleware(['auth:api', 'entreprise'])->group(function () {
+
+    // ---- Gestion de ses propres produits ----
+    Route::post('/products', [ProductsController::class, 'store']);
+    Route::put('/products/{products}', [ProductsController::class, 'update']);
+    Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
+    Route::delete('/products/{products}/photos', [ProductsController::class, 'removePhoto']);
+    Route::delete('/products/{products}/videos', [ProductsController::class, 'removeVideo']);
+    Route::post('/products/{products}/media', [ProductsController::class, 'addMedia']);
+    Route::put('/products/{product}/assign-prize', [ProductsController::class, 'assignPrize']);
+    Route::delete('/products/{product}/remove-prize', [ProductsController::class, 'removePrize']);
+
+    // ---- Gestion de ses propres annonces ----
+    Route::post('/ads', [AdsController::class, 'store']);
+    Route::put('/ads/{ads}', [AdsController::class, 'update']);
+    Route::delete('/ads/{ads}', [AdsController::class, 'destroy']);
+    Route::delete('/ads/{ads}/photos', [AdsController::class, 'removePhoto']);
+    Route::delete('/ads/{ads}/videos', [AdsController::class, 'removeVideo']);
+    Route::post('/ads/{ads}/media', [AdsController::class, 'addMedia']);
+
+    // ---- Gestion de ses propres deals / promotions ----
+    Route::apiResource('deals', DealsController::class)->except(['index', 'show']);
+
+    // ---- Boost des annonces/produits (visibilite payante) ----
+    Route::apiResource('boost-ads-packs', BoostAdsPacksController::class)->only(['index', 'show']);
+    Route::apiResource('boosts', BoostsController::class)->only(['index', 'show']);
+
+    // ---- Espace vendeur : sa fiche entreprise + ses ventes ----
+    Route::apiResource('vendors', VendorsController::class);
+    Route::get('/vendors/{id}/invoices', [InvoicesController::class, 'vendorInvoices']);
+    Route::apiResource('invoices', InvoicesController::class)->only(['index', 'destroy']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| 4) ROUTES ADMIN UNIQUEMENT — auth:api + middleware 'admin' (IdRole = 3)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api', 'admin'])->group(function () {
+
+    // ---- Activation / moderation ----
+    Route::patch('/prizes/{prizes}/activate', [PrizesController::class, 'activate']);
+    Route::patch('/ads/{ads}/activate', [AdsController::class, 'activate']);
+    Route::patch('/products/{products}/activate', [ProductsController::class, 'activate']);
+
+    // ---- Gestion des roles et permissions ----
+    Route::apiResource('roles', RolesController::class);
+    Route::apiResource('permissions', PermissionsController::class);
+    Route::apiResource('list-permissions', ListPermissionsController::class);
+
+    // ---- Configuration de la plateforme ----
+    Route::apiResource('admin-settings', AdminSettingsController::class);
+    Route::apiResource('type-category', TypeCategoryController::class)->except(['index', 'show']);
+    Route::apiResource('labels', LabelsController::class)->except(['index', 'show']);
+    Route::apiResource('transports', TransportsController::class)->except(['index', 'show']);
+    Route::apiResource('features', FeaturesController::class)->except(['index', 'show']);
+    Route::apiResource('features-values', FeaturesValuesController::class)->except(['index', 'show']);
+    Route::apiResource('feature-categories', FeatureCategoriesController::class)->except(['index', 'show']);
+    Route::apiResource('brands', BrandsController::class)->except(['index', 'show']);
+    Route::apiResource('categories', CategoriesController::class)->except(['index', 'show']);
+    Route::apiResource('cities', CitiesController::class)->except(['index', 'show']);
+    Route::apiResource('countries', CountriesController::class)->except(['index', 'show']);
+    Route::apiResource('countries-full', CountriesFullController::class)->except(['index', 'show']);
+    Route::apiResource('states', StatesController::class)->except(['index', 'show']);
+    Route::apiResource('causes', CausesController::class)->except(['index', 'show']);
+    Route::apiResource('causes-reports', CausesReportsController::class);
+
+    // ---- Offres commerciales de la plateforme (packs, coupons, boosts, prizes) ----
+    Route::apiResource('coupons', CouponsController::class)->except(['index', 'show']);
+    Route::apiResource('point-packets', PointPacketsController::class)->except(['index', 'show']);
+    Route::apiResource('boost-ads-packs', BoostAdsPacksController::class)->except(['index', 'show']);
+    Route::apiResource('boosts', BoostsController::class)->except(['index', 'show']);
+    Route::apiResource('prizes', PrizesController::class)->except(['index', 'show']);
+    Route::apiResource('winners', WinnersController::class);
+
+    // ---- Supervision / logs ----
+    Route::apiResource('sms-logs', SmsLogsController::class);
+    Route::apiResource('errors', ErrorsController::class);
+    Route::apiResource('reports', ReportsController::class)->only(['index']);
+
+    // ---- Statistiques globales ----
+    Route::get('/invoices/statistics', [InvoicesController::class, 'statistics']);
+    Route::get('/invoices/revenue/monthly', [InvoicesController::class, 'monthlyRevenue']);
+});
