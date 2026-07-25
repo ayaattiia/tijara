@@ -377,77 +377,119 @@ class AdsController extends Controller
 
 
     /**
- * DELETE /api/ads/{ads}/photos?index=0
- * ou
- * DELETE /api/ads/{ads}/photos?path=assets/ads/images/photo.jpg
- */
-public function removePhoto(Request $request, $ads)
-{
-    $request->validate([
-        'index' => 'nullable|integer|min:0',
-        'path'  => 'nullable|string'
-    ]);
+     * DELETE /api/ads/{ads}/photos?index=0
+     * ou
+     * DELETE /api/ads/{ads}/photos?path=assets/ads/images/photo.jpg
+     */
+    public function removePhoto(Request $request, $ads)
+    {
+        $request->validate([
+            'index' => 'nullable|integer|min:0',
+            'path'  => 'nullable|string'
+        ]);
 
-    if (!$request->filled('index') && !$request->filled('path')) {
+        if (!$request->filled('index') && !$request->filled('path')) {
+            return response()->json([
+                'message' => 'index or path is required.'
+            ], 422);
+        }
+
+        $item = Ads::findOrFail($ads);
+
+        $photos = $item->ImageAd;
+
+        if ($request->filled('index')) {
+
+            $index = (int)$request->index;
+
+            if (!isset($photos[$index])) {
+                return response()->json([
+                    'message' => 'Photo not found.'
+                ], 404);
+            }
+
+            $file = public_path($photos[$index]);
+
+            if (file_exists($file)) {
+                unlink($file);
+            }
+
+            unset($photos[$index]);
+        }
+
+        if ($request->filled('path')) {
+
+            $path = $request->path;
+
+            if (!in_array($path, $photos)) {
+                return response()->json([
+                    'message' => 'Photo not found.'
+                ], 404);
+            }
+
+            $file = public_path($path);
+
+            if (file_exists($file)) {
+                unlink($file);
+            }
+
+            $photos = array_filter($photos, fn($p) => $p !== $path);
+        }
+
+        $photos = array_values($photos);
+
+        $item->update([
+            'ImageAd' => $photos
+        ]);
+
         return response()->json([
-            'message' => 'index or path is required.'
-        ], 422);
+            'message' => 'Photo removed successfully.',
+            'data' => $item->fresh(),
+            'image_urls' => collect($item->fresh()->ImageAd)->map(fn($p) => asset($p)),
+        ]);
     }
 
-    $item = Ads::findOrFail($ads);
+    public function removeVideo(Request $request, $ads)
+    {
+        $request->validate([
+            'index' => 'required|integer|min:0',
+        ]);
 
-    $photos = $item->ImageAd;
+        $item = Ads::findOrFail($ads);
 
-    if ($request->filled('index')) {
+        $videos = $this->normalizeMediaArray($item->getRawOriginal('VideoAd'));
 
-        $index = (int)$request->index;
+        $index = (int) $request->query('index');
 
-        if (!isset($photos[$index])) {
+        if (!isset($videos[$index])) {
             return response()->json([
-                'message' => 'Photo not found.'
+                'message' => 'Video not found.'
             ], 404);
         }
 
-        $file = public_path($photos[$index]);
+        $filename = $videos[$index];
+
+        $file = public_path(self::VIDEOS_FOLDER . '/' . $filename);
 
         if (file_exists($file)) {
             unlink($file);
         }
 
-        unset($photos[$index]);
+        unset($videos[$index]);
+
+        $videos = array_values($videos);
+
+        $item->update([
+            'VideoAd' => $videos
+        ]);
+
+        return response()->json([
+            'message'    => 'Video removed successfully.',
+            'data'       => $item->fresh()->load(self::FEATURES_RELATIONS),
+            'video_urls' => $this->mediaUrls(
+                $item->fresh()->VideoAd,
+                self::VIDEOS_FOLDER
+            ),
+        ]);
     }
-
-    if ($request->filled('path')) {
-
-        $path = $request->path;
-
-        if (!in_array($path, $photos)) {
-            return response()->json([
-                'message' => 'Photo not found.'
-            ], 404);
-        }
-
-        $file = public_path($path);
-
-        if (file_exists($file)) {
-            unlink($file);
-        }
-
-        $photos = array_filter($photos, fn($p) => $p !== $path);
-    }
-
-    $photos = array_values($photos);
-
-    $item->update([
-        'ImageAd' => $photos
-    ]);
-
-    return response()->json([
-        'message' => 'Photo removed successfully.',
-        'data' => $item->fresh(),
-        'image_urls' => collect($item->fresh()->ImageAd)->map(fn($p) => asset($p)),
-    ]);
-}
-
-
 }

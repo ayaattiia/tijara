@@ -161,6 +161,7 @@ Route::post('/ads', [AdsController::class, 'store']);
 Route::put('/ads/{ads}', [AdsController::class, 'update']);
 Route::delete('/ads/{ads}', [AdsController::class, 'destroy']);
 Route::delete('/ads/{ads}/photos', [AdsController::class, 'removePhoto']);
+Route::delete('/ads/{ads}/videos', [AdsController::class, 'removeVideo']);
 
 Route::get('/ads/search/{search}', [AdsController::class, 'search']);
 Route::get('/ads/category/{IdCateg}', [AdsController::class, 'byCategory']);
