@@ -18,37 +18,39 @@ use Exception;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'Username'  => 'required|string|max:250',
-            'Email'     => 'required|email|max:250|unique:Users,Email',
-            'Password'  => 'required|string|min:6',
-        ]);
+   public function register(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'Username'  => 'required|string|max:250',
+        'Email'     => 'required|email|max:250|unique:Users,Email',
+        'Password'  => 'required|string|min:6',
+        'IdRole'    => 'nullable|integer|in:1,2', // 1 = utilisateur, 2 = vendeur
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $user = Users::create([
-            'Username'       => $request->Username,
-            'Email'          => $request->Email,
-            'Password'       => Hash::make($request->Password),
-            'FirstName'      => $request->FirstName,
-            'LastName'       => $request->LastName,
-            'Telephone'      => $request->Telephone,
-            'CreationDate'   => now(),
-            'Active'         => 1,
-            'EmailConfirmed' => 0,
-        ]);
-
-        $token = $user->createToken('auth_token')->accessToken;
-
-        return response()->json([
-            'user'  => $user,
-            'token' => $token,
-        ], 201);
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
     }
+
+    $user = Users::create([
+        'Username'       => $request->Username,
+        'Email'          => $request->Email,
+        'Password'       => Hash::make($request->Password),
+        'FirstName'      => $request->FirstName,
+        'LastName'       => $request->LastName,
+        'Telephone'      => $request->Telephone,
+        'CreationDate'   => now(),
+        'IdRole'         => $request->IdRole ?? 1, // par defaut utilisateur simple
+        'Active'         => 1,
+        'EmailConfirmed' => 0,
+    ]);
+
+    $token = $user->createToken('auth_token')->accessToken;
+
+    return response()->json([
+        'user'  => $user,
+        'token' => $token,
+    ], 201);
+}
 
     public function login(Request $request)
     {
