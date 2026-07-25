@@ -148,8 +148,18 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('reviews', ReviewsController::class);
     Route::apiResource('ratings', RatingsController::class);
     Route::apiResource('messages', MessagesController::class);
-    Route::apiResource('chats', ChatsController::class);
-    Route::apiResource('chat-messages', ChatMessagesController::class);
+
+    Route::post('/chats/start', [ChatsController::class, 'start']);
+    Route::get('/chats', [ChatsController::class, 'index']);
+    Route::get('/chats/{chats}', [ChatsController::class, 'show']);
+    Route::put('/chats/{chats}', [ChatsController::class, 'update']);
+    Route::delete('/chats/{chats}', [ChatsController::class, 'destroy']);
+
+    Route::get('/chats/{idChat}/messages', [ChatMessagesController::class, 'index']);
+    Route::post('/chats/{idChat}/messages', [ChatMessagesController::class, 'store']);
+    Route::get('/chat-messages/{chat_messages}', [ChatMessagesController::class, 'show']);
+    Route::delete('/chat-messages/{chat_messages}', [ChatMessagesController::class, 'destroy']);
+
     Route::apiResource('notifications', NotificationsController::class);
     Route::apiResource('user-follows', UserFollowsController::class);
     Route::apiResource('tags', TagsController::class);
