@@ -25,6 +25,7 @@ class AdsWishlistController extends Controller
             []
         );
 
+
         return response()->json($query->paginate($perPage));
     }
 
@@ -55,6 +56,70 @@ class AdsWishlistController extends Controller
         return response()->json(null, 204);
     }
 
+    /**
+     * POST /api/ads-wishlist/add
+     * Body: { "IdUser": 1, "IdAd": 10, "Liked": 1 }
+     * Adds the ad to the wishlist only if it isn't already saved.
+     */
+    public function addToWishlist(Request $request)
+    {
+        $request->validate([
+            'IdUser' => 'required|integer',
+            'IdAd'   => 'required|integer',
+            'Liked'  => 'nullable|boolean',
+        ]);
+
+        $existing = AdsWishlist::where('IdUser', $request->IdUser)
+            ->where('IdAd', $request->IdAd)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'Already in wishlist.',
+                'data'    => $existing,
+            ], 200);
+        }
+
+        $item = AdsWishlist::create([
+            'IdUser' => $request->IdUser,
+            'IdAd'   => $request->IdAd,
+            'Liked'  => $request->input('Liked', 1),
+        ]);
+
+        return response()->json([
+            'message' => 'Added to wishlist.',
+            'data'    => $item,
+        ], 201);
+    }
+
+    /**
+     * DELETE /api/ads-wishlist/remove
+     * Body/query: { "IdUser": 1, "IdAd": 10 }
+     * Removes the ad from the wishlist if present.
+     */
+    public function removeFromWishlist(Request $request)
+    {
+        $request->validate([
+            'IdUser' => 'required|integer',
+            'IdAd'   => 'required|integer',
+        ]);
+
+        $existing = AdsWishlist::where('IdUser', $request->IdUser)
+            ->where('IdAd', $request->IdAd)
+            ->first();
+
+        if (!$existing) {
+            return response()->json([
+                'message' => 'Already removed from wishlist.',
+            ], 200);
+        }
+
+        $existing->delete();
+
+        return response()->json([
+            'message' => 'Removed from wishlist.',
+        ], 200);
+    }
     /**
      * Resolve the per_page value from the request, falling back to a default
      * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.

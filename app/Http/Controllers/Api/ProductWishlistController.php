@@ -54,7 +54,68 @@ class ProductWishlistController extends Controller
         $item->delete();
         return response()->json(null, 204);
     }
+    /**
+     * POST /api/product-wishlist/add
+     * Body: { "IdUser": 1, "IdProduct": 10, "Liked": 1 }
+     */
+    public function addToWishlist(Request $request)
+    {
+        $request->validate([
+            'IdUser'    => 'required|integer',
+            'IdProduct' => 'required|integer',
+            'Liked'     => 'nullable|boolean',
+        ]);
 
+        $existing = ProductWishlist::where('IdUser', $request->IdUser)
+            ->where('IdProduct', $request->IdProduct)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'Already in wishlist.',
+                'data'    => $existing,
+            ], 200);
+        }
+
+        $item = ProductWishlist::create([
+            'IdUser'    => $request->IdUser,
+            'IdProduct' => $request->IdProduct,
+            'Liked'     => $request->input('Liked', 1),
+        ]);
+
+        return response()->json([
+            'message' => 'Added to wishlist.',
+            'data'    => $item,
+        ], 201);
+    }
+
+    /**
+     * DELETE /api/product-wishlist/remove
+     * Body/query: { "IdUser": 1, "IdProduct": 10 }
+     */
+    public function removeFromWishlist(Request $request)
+    {
+        $request->validate([
+            'IdUser'    => 'required|integer',
+            'IdProduct' => 'required|integer',
+        ]);
+
+        $existing = ProductWishlist::where('IdUser', $request->IdUser)
+            ->where('IdProduct', $request->IdProduct)
+            ->first();
+
+        if (!$existing) {
+            return response()->json([
+                'message' => 'Already removed from wishlist.',
+            ], 200);
+        }
+
+        $existing->delete();
+
+        return response()->json([
+            'message' => 'Removed from wishlist.',
+        ], 200);
+    }
     /**
      * Resolve the per_page value from the request, falling back to a default
      * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.

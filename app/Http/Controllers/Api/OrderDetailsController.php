@@ -54,7 +54,25 @@ class OrderDetailsController extends Controller
         $item->delete();
         return response()->json(null, 204);
     }
+    /**
+     * GET /api/order-details/total/{idOrder}
+     * Returns the total price of all products in the given order.
+     */
+    public function total($idOrder)
+    {
+        $details = OrderDetails::with('product')
+            ->where('IdOrder', $idOrder)
+            ->get();
 
+        $total = $details->sum(function ($detail) {
+            return $detail->product->PriceProduct * $detail->Quantity;
+        });
+
+        return response()->json([
+            'IdOrder' => (int) $idOrder,
+            'total'   => round($total, 2),
+        ]);
+    }
     /**
      * Resolve the per_page value from the request, falling back to a default
      * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.

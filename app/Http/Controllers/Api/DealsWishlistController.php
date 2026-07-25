@@ -56,6 +56,69 @@ class DealsWishlistController extends Controller
     }
 
     /**
+     * POST /api/deals-wishlist/add
+     * Body: { "IdUser": 1, "IdDeal": 10, "Liked": 1 }
+     */
+    public function addToWishlist(Request $request)
+    {
+        $request->validate([
+            'IdUser' => 'required|integer',
+            'IdDeal' => 'required|integer',
+            'Liked'  => 'nullable|boolean',
+        ]);
+
+        $existing = DealsWishlist::where('IdUser', $request->IdUser)
+            ->where('IdDeal', $request->IdDeal)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'Already in wishlist.',
+                'data'    => $existing,
+            ], 200);
+        }
+
+        $item = DealsWishlist::create([
+            'IdUser' => $request->IdUser,
+            'IdDeal' => $request->IdDeal,
+            'Liked'  => $request->input('Liked', 1),
+        ]);
+
+        return response()->json([
+            'message' => 'Added to wishlist.',
+            'data'    => $item,
+        ], 201);
+    }
+
+    /**
+     * DELETE /api/deals-wishlist/remove
+     * Body/query: { "IdUser": 1, "IdDeal": 10 }
+     */
+    public function removeFromWishlist(Request $request)
+    {
+        $request->validate([
+            'IdUser' => 'required|integer',
+            'IdDeal' => 'required|integer',
+        ]);
+
+        $existing = DealsWishlist::where('IdUser', $request->IdUser)
+            ->where('IdDeal', $request->IdDeal)
+            ->first();
+
+        if (!$existing) {
+            return response()->json([
+                'message' => 'Already removed from wishlist.',
+            ], 200);
+        }
+
+        $existing->delete();
+
+        return response()->json([
+            'message' => 'Removed from wishlist.',
+        ], 200);
+    }
+
+    /**
      * Resolve the per_page value from the request, falling back to a default
      * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.
      */

@@ -79,7 +79,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('admin-settings', AdminSettingsController::class);
 
 
-
+    Route::delete('ads-wishlist/remove', [AdsWishlistController::class, 'removeFromWishlist']);
     Route::apiResource('ads-wishlist', AdsWishlistController::class);
     Route::apiResource('boost-ads-packs', BoostAdsPacksController::class);
     Route::apiResource('boosts', BoostsController::class);
@@ -101,6 +101,8 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('countries-full', CountriesFullController::class);
     Route::apiResource('coupons', CouponsController::class);
     Route::apiResource('deals', DealsController::class);
+    Route::delete('deals-wishlist/remove', [DealsWishlistController::class, 'removeFromWishlist']);
+
     Route::apiResource('deals-wishlist', DealsWishlistController::class);
     Route::apiResource('deliveries', DeliveriesController::class);
     Route::apiResource('email-tokens', EmailTokensController::class);
@@ -121,6 +123,8 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('point-packets', PointPacketsController::class);
     Route::apiResource('prizes', PrizesController::class);
     Route::apiResource('products', ProductsController::class);
+    Route::delete('product-wishlist/remove', [ProductWishlistController::class, 'removeFromWishlist']);
+
     Route::apiResource('product-wishlist', ProductWishlistController::class);
     Route::apiResource('ratings', RatingsController::class);
     Route::apiResource('reports', ReportsController::class);
@@ -236,3 +240,10 @@ Route::middleware('auth:api')->group(function () {
         });
     });
 });
+
+Route::get('order-details/total/{idOrder}', [App\Http\Controllers\Api\OrderDetailsController::class, 'total']);
+
+Route::post('ads-wishlist/add', [App\Http\Controllers\Api\AdsWishlistController::class, 'addToWishlist']);
+
+Route::post('deals-wishlist/add', [DealsWishlistController::class, 'addToWishlist']);
+Route::post('product-wishlist/add', [ProductWishlistController::class, 'addToWishlist']);
