@@ -54,7 +54,117 @@ class DeliveriesController extends Controller
         $item->delete();
         return response()->json(null, 204);
     }
+    /**
+     * GET /api/deliveries/order/{idOrder}
+     * List every package/colis shipped for a given order.
+     * Since delivery is per-colis (not per-order), one order can have many rows here.
+     */
+    public function orderDeliveries($idOrder)
+    {
+        $deliveries = Deliveries::where('IdOrder', $idOrder)
+            ->orderByDesc('CreatedAt')
+            ->get();
 
+        return response()->json([
+            'success' => true,
+            'IdOrder' => (int) $idOrder,
+            'count' => $deliveries->count(),
+            'data' => $deliveries
+        ]);
+    }
+
+    /**
+     * GET /api/deliveries/track/{trackingNumber}
+     * Look up a single package by its tracking number (customer-facing tracking page).
+     */
+    public function track($trackingNumber)
+    {
+        $delivery = Deliveries::where('TrackingNumber', $trackingNumber)->first();
+
+        if (!$delivery) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Delivery not found.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $delivery
+        ]);
+    }
+
+    /**
+     * POST /api/deliveries/{id}/deliver
+     * Mark a specific package as delivered.
+     */
+    public function markDelivered($id)
+    {
+        $delivery = Deliveries::find($id);
+
+        if (!$delivery) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Delivery not found.'
+            ], 404);
+        }
+
+        if ($delivery->Status == 'Delivered') {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Delivery already marked as delivered.'
+            ], 400);
+        }
+
+        $delivery->Status = 'Delivered';
+        $delivery->DeliveredAt = now();
+        $delivery->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Delivery marked as delivered.',
+            'data' => $delivery
+        ]);
+    }
+
+    /**
+     * POST /api/deliveries/{id}/status
+     * Body: { "Status": "In Transit" }
+     * Generic status transition (Pending -> In Transit -> Delivered / Failed).
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $delivery = Deliveries::find($id);
+
+        if (!$delivery) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Delivery not found.'
+            ], 404);
+        }
+
+        $request->validate([
+            'Status' => 'required|string|in:Pending,In Transit,Delivered,Failed,Returned'
+        ]);
+
+        $delivery->Status = $request->Status;
+
+        if ($request->Status == 'Delivered') {
+            $delivery->DeliveredAt = now();
+        }
+
+        $delivery->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Delivery status updated.',
+            'data' => $delivery
+        ]);
+    }
     /**
      * Resolve the per_page value from the request, falling back to a default
      * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.

@@ -1297,6 +1297,29 @@ ALTER TABLE `invoices`
   ADD PRIMARY KEY (`IdInvoice`),
   ADD UNIQUE KEY `UQ_Invoices_Number` (`Number`);
 
+
+  ADD KEY `invoices_idvendor_foreign` (`IdVendor`);
+
+--
+-- AUTO_INCREMENT pour les tables déchargées
+--
+
+--
+-- AUTO_INCREMENT pour la table `invoices`
+--
+ALTER TABLE `invoices`
+  MODIFY `IdInvoice` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+
+--
+-- Contraintes pour les tables déchargées
+--
+
+--
+-- Contraintes pour la table `invoices`
+--
+ALTER TABLE `invoices`
+  ADD CONSTRAINT `invoices_idvendor_foreign` FOREIGN KEY (`IdVendor`) REFERENCES `users` (`IdUser`) ON UPDATE CASCADE;
+COMMIT;
 --
 -- Index pour la table `labels`
 --

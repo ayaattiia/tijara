@@ -104,6 +104,13 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('deals-wishlist/remove', [DealsWishlistController::class, 'removeFromWishlist']);
 
     Route::apiResource('deals-wishlist', DealsWishlistController::class);
+
+    // Deliveries
+    Route::get('deliveries/order/{idOrder}', [DeliveriesController::class, 'orderDeliveries']);
+    Route::get('deliveries/track/{trackingNumber}', [DeliveriesController::class, 'track']);
+    Route::post('deliveries/{id}/deliver', [DeliveriesController::class, 'markDelivered']);
+    Route::post('deliveries/{id}/status', [DeliveriesController::class, 'updateStatus']);
+
     Route::apiResource('deliveries', DeliveriesController::class);
     Route::apiResource('email-tokens', EmailTokensController::class);
     Route::apiResource('errors', ErrorsController::class);
@@ -118,6 +125,13 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('notifications', NotificationsController::class);
     Route::apiResource('order-details', OrderDetailsController::class);
     Route::apiResource('orders', OrdersController::class);
+    // Custom routes FIRST
+    Route::get('payments/order/{idOrder}', [PaymentsController::class, 'orderPayments']);
+    Route::get('payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
+    Route::post('payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
+    Route::post('payments/{id}/refund', [PaymentsController::class, 'refund']);
+    Route::get('payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
+
     Route::apiResource('payments', PaymentsController::class);
     Route::apiResource('permissions', PermissionsController::class);
     Route::apiResource('point-packets', PointPacketsController::class);
@@ -133,6 +147,13 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('sms-logs', SmsLogsController::class);
     Route::apiResource('states', StatesController::class);
     Route::apiResource('tags', TagsController::class);
+
+    Route::get('transports/date-range', [TransportsController::class, 'dateRange']);
+    Route::get('transports/order/{idOrder}', [TransportsController::class, 'orderTransports']);
+    Route::get('transports/{id}/deliveries', [TransportsController::class, 'transportDeliveries']);
+    Route::post('transports/{id}/toggle-active', [TransportsController::class, 'toggleActive']);
+    Route::get('transports/{id}/stats', [TransportsController::class, 'stats']);
+
     Route::apiResource('transports', TransportsController::class);
     Route::apiResource('type-category', TypeCategoryController::class);
     Route::apiResource('user-follows', UserFollowsController::class);
