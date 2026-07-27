@@ -59,6 +59,8 @@ use App\Http\Controllers\Api\WalletsController;
 use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
+use App\Http\Controllers\Api\ChatMessageAttachmentsController;
+
 
 
 /*
@@ -198,6 +200,24 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('point-packets', PointPacketsController::class)->only(['index', 'show']);
     Route::apiResource('coupons', CouponsController::class)->only(['index', 'show']);
     Route::apiResource('prizes', PrizesController::class)->only(['index', 'show']);
+
+
+
+
+Route::get(
+    '/chat-attachments/{id}',
+    [ChatMessageAttachmentsController::class, 'show']
+);
+
+Route::get(
+    '/chat-attachments/{id}/download',
+    [ChatMessageAttachmentsController::class, 'download']
+);
+
+Route::delete(
+    '/chat-attachments/{id}',
+    [ChatMessageAttachmentsController::class, 'destroy']
+);
 });
 
 
