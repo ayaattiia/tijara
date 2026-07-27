@@ -76,100 +76,99 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/auth/facebook', [AuthController::class, 'redirectToFacebook']);
 Route::get('/auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
 
-<<<<<<< HEAD
-    Route::apiResource('ad-comments', AdCommentsController::class);
-    Route::apiResource('ad-likes', AdLikesController::class);
-    Route::apiResource('admin-settings', AdminSettingsController::class);
+Route::apiResource('ad-comments', AdCommentsController::class);
+Route::apiResource('ad-likes', AdLikesController::class);
+Route::apiResource('admin-settings', AdminSettingsController::class);
 
 
-    Route::delete('ads-wishlist/remove', [AdsWishlistController::class, 'removeFromWishlist']);
-    Route::apiResource('ads-wishlist', AdsWishlistController::class);
-    Route::apiResource('boost-ads-packs', BoostAdsPacksController::class);
-    Route::apiResource('boosts', BoostsController::class);
-    Route::apiResource('brands', BrandsController::class);
+Route::delete('ads-wishlist/remove', [AdsWishlistController::class, 'removeFromWishlist']);
+Route::apiResource('ads-wishlist', AdsWishlistController::class);
+Route::apiResource('boost-ads-packs', BoostAdsPacksController::class);
+Route::apiResource('boosts', BoostsController::class);
+Route::apiResource('brands', BrandsController::class);
 
 
-    Route::get('categories-roots', [CategoriesController::class, 'roots']);
-    Route::get('categories/{categories}/children', [CategoriesController::class, 'children']);
-    Route::apiResource('categories', CategoriesController::class);
+Route::get('categories-roots', [CategoriesController::class, 'roots']);
+Route::get('categories/{categories}/children', [CategoriesController::class, 'children']);
+Route::apiResource('categories', CategoriesController::class);
 
 
-    Route::apiResource('causes', CausesController::class);
-    Route::apiResource('causes-reports', CausesReportsController::class);
-    Route::apiResource('chat-messages', ChatMessagesController::class);
-    Route::apiResource('chats', ChatsController::class);
-    Route::apiResource('cities', CitiesController::class);
-    Route::apiResource('comments', CommentsController::class);
-    Route::apiResource('countries', CountriesController::class);
-    Route::apiResource('countries-full', CountriesFullController::class);
-    Route::apiResource('coupons', CouponsController::class);
-    Route::apiResource('deals', DealsController::class);
-    Route::delete('deals-wishlist/remove', [DealsWishlistController::class, 'removeFromWishlist']);
+Route::apiResource('causes', CausesController::class);
+Route::apiResource('causes-reports', CausesReportsController::class);
+Route::apiResource('chat-messages', ChatMessagesController::class);
+Route::apiResource('chats', ChatsController::class);
+Route::apiResource('cities', CitiesController::class);
+Route::apiResource('comments', CommentsController::class);
+Route::apiResource('countries', CountriesController::class);
+Route::apiResource('countries-full', CountriesFullController::class);
+Route::apiResource('coupons', CouponsController::class);
+Route::apiResource('deals', DealsController::class);
+Route::delete('deals-wishlist/remove', [DealsWishlistController::class, 'removeFromWishlist']);
 
-    Route::apiResource('deals-wishlist', DealsWishlistController::class);
+Route::apiResource('deals-wishlist', DealsWishlistController::class);
 
-    // Deliveries
-    Route::get('deliveries/order/{idOrder}', [DeliveriesController::class, 'orderDeliveries']);
-    Route::get('deliveries/track/{trackingNumber}', [DeliveriesController::class, 'track']);
-    Route::post('deliveries/{id}/deliver', [DeliveriesController::class, 'markDelivered']);
-    Route::post('deliveries/{id}/status', [DeliveriesController::class, 'updateStatus']);
+// Deliveries
+Route::get('deliveries/order/{idOrder}', [DeliveriesController::class, 'orderDeliveries']);
+Route::get('deliveries/track/{trackingNumber}', [DeliveriesController::class, 'track']);
+Route::post('deliveries/{id}/deliver', [DeliveriesController::class, 'markDelivered']);
+Route::post('deliveries/{id}/status', [DeliveriesController::class, 'updateStatus']);
 
-    Route::apiResource('deliveries', DeliveriesController::class);
-    Route::apiResource('email-tokens', EmailTokensController::class);
-    Route::apiResource('errors', ErrorsController::class);
-    Route::apiResource('feature-categories', FeatureCategoriesController::class);
-    Route::apiResource('features', FeaturesController::class);
-    Route::apiResource('features-values', FeaturesValuesController::class);
-    Route::apiResource('invoices', InvoicesController::class);
-    Route::apiResource('labels', LabelsController::class);
-    Route::apiResource('likes', LikesController::class);
-    Route::apiResource('list-permissions', ListPermissionsController::class);
-    Route::apiResource('messages', MessagesController::class);
-    Route::apiResource('notifications', NotificationsController::class);
-    Route::apiResource('order-details', OrderDetailsController::class);
-    Route::apiResource('orders', OrdersController::class);
-    // Custom routes FIRST
-    Route::get('payments/order/{idOrder}', [PaymentsController::class, 'orderPayments']);
-    Route::get('payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
-    Route::post('payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
-    Route::post('payments/{id}/refund', [PaymentsController::class, 'refund']);
-    Route::get('payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
+Route::apiResource('deliveries', DeliveriesController::class);
+Route::apiResource('email-tokens', EmailTokensController::class);
+Route::apiResource('errors', ErrorsController::class);
+Route::apiResource('feature-categories', FeatureCategoriesController::class);
+Route::apiResource('features', FeaturesController::class);
+Route::apiResource('features-values', FeaturesValuesController::class);
+Route::apiResource('invoices', InvoicesController::class);
+Route::apiResource('labels', LabelsController::class);
+Route::apiResource('likes', LikesController::class);
+Route::apiResource('list-permissions', ListPermissionsController::class);
+Route::apiResource('messages', MessagesController::class);
+Route::apiResource('notifications', NotificationsController::class);
+Route::apiResource('order-details', OrderDetailsController::class);
+Route::apiResource('orders', OrdersController::class);
+// Custom routes FIRST
+Route::get('payments/order/{idOrder}', [PaymentsController::class, 'orderPayments']);
+Route::get('payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
+Route::post('payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
+Route::post('payments/{id}/refund', [PaymentsController::class, 'refund']);
+Route::get('payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
 
-    Route::apiResource('payments', PaymentsController::class);
-    Route::apiResource('permissions', PermissionsController::class);
-    Route::apiResource('point-packets', PointPacketsController::class);
-    Route::apiResource('prizes', PrizesController::class);
-    Route::apiResource('products', ProductsController::class);
-    Route::delete('product-wishlist/remove', [ProductWishlistController::class, 'removeFromWishlist']);
+Route::apiResource('payments', PaymentsController::class);
+Route::apiResource('permissions', PermissionsController::class);
+Route::apiResource('point-packets', PointPacketsController::class);
+Route::apiResource('prizes', PrizesController::class);
+Route::apiResource('products', ProductsController::class);
+Route::delete('product-wishlist/remove', [ProductWishlistController::class, 'removeFromWishlist']);
 
-    Route::apiResource('product-wishlist', ProductWishlistController::class);
-    Route::apiResource('ratings', RatingsController::class);
-    Route::apiResource('reports', ReportsController::class);
-    Route::apiResource('reviews', ReviewsController::class);
-    Route::apiResource('roles', RolesController::class);
-    Route::apiResource('sms-logs', SmsLogsController::class);
-    Route::apiResource('states', StatesController::class);
-    Route::apiResource('tags', TagsController::class);
+Route::apiResource('product-wishlist', ProductWishlistController::class);
+Route::apiResource('ratings', RatingsController::class);
+Route::apiResource('reports', ReportsController::class);
+Route::apiResource('reviews', ReviewsController::class);
+Route::apiResource('roles', RolesController::class);
+Route::apiResource('sms-logs', SmsLogsController::class);
+Route::apiResource('states', StatesController::class);
+Route::apiResource('tags', TagsController::class);
 
-    Route::get('transports/date-range', [TransportsController::class, 'dateRange']);
-    Route::get('transports/order/{idOrder}', [TransportsController::class, 'orderTransports']);
-    Route::get('transports/{id}/deliveries', [TransportsController::class, 'transportDeliveries']);
-    Route::post('transports/{id}/toggle-active', [TransportsController::class, 'toggleActive']);
-    Route::get('transports/{id}/stats', [TransportsController::class, 'stats']);
+Route::get('transports/date-range', [TransportsController::class, 'dateRange']);
+Route::get('transports/order/{idOrder}', [TransportsController::class, 'orderTransports']);
+Route::get('transports/{id}/deliveries', [TransportsController::class, 'transportDeliveries']);
+Route::post('transports/{id}/toggle-active', [TransportsController::class, 'toggleActive']);
+Route::get('transports/{id}/stats', [TransportsController::class, 'stats']);
 
-    Route::apiResource('transports', TransportsController::class);
-    Route::apiResource('type-category', TypeCategoryController::class);
-    Route::apiResource('user-follows', UserFollowsController::class);
-    Route::apiResource('users', UsersController::class);
-    Route::apiResource('wallets', WalletsController::class);
-    Route::apiResource('winners', WinnersController::class);
-    Route::apiResource('wishlist-ads', WishlistAdsController::class);
-    Route::apiResource('wishlist-deals', WishlistDealsController::class);
-    Route::apiResource('vendors', VendorsController::class);
-});
+Route::apiResource('transports', TransportsController::class);
+Route::apiResource('type-category', TypeCategoryController::class);
+Route::apiResource('user-follows', UserFollowsController::class);
+Route::apiResource('users', UsersController::class);
+Route::apiResource('wallets', WalletsController::class);
+Route::apiResource('winners', WinnersController::class);
+Route::apiResource('wishlist-ads', WishlistAdsController::class);
+Route::apiResource('wishlist-deals', WishlistDealsController::class);
+Route::apiResource('vendors', VendorsController::class);
+
 
 // ---- Routes publiques (non auth) ----
-=======
+
 // Consultation publique du catalogue
 Route::get('/products', [ProductsController::class, 'index']);
 Route::get('/products/{products}', [ProductsController::class, 'show']);
