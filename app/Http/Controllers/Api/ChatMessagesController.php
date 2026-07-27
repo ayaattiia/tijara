@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
 use App\Models\ChatMessages;
+use App\Models\Chats;
 use Illuminate\Http\Request;
 
 class ChatMessagesController extends Controller
@@ -13,57 +15,83 @@ class ChatMessagesController extends Controller
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
 
-    public function index(Request $request)
+    /**
+     * GET /api/chats/{idChat}/messages
+     */
+    public function index(Request $request, $idChat)
     {
+        $chat = Chats::findOrFail($idChat);
+        $this->authorizeChatAccess($request, $chat);
+
         $perPage = $this->resolvePerPage($request);
 
         $query = $this->buildFilteredQuery(
             $request,
             ChatMessages::class,
             ['Message'],
-            ['IdChatMessage', 'IdChat', 'IdUserSender', 'Report', 'AdminReview', 'Active'],
+            ['IdUserSender', 'Active'],
             ['CreateDate']
-        );
+        )->where('IdChat', $idChat)->orderBy('CreateDate');
 
         return response()->json($query->paginate($perPage));
     }
 
-    public function store(Request $request)
+    /**
+     * POST /api/chats/{idChat}/messages   { "Message": "Bonjour !" }
+     */
+    public function store(Request $request, $idChat)
     {
-        $data = $request->all();
-        $item = ChatMessages::create($data);
+        $chat = Chats::findOrFail($idChat);
+        $this->authorizeChatAccess($request, $chat);
+
+        $request->validate([
+            'Message' => 'required|string|max:2000',
+        ]);
+
+        $item = ChatMessages::create([
+            'IdChat'       => $idChat,
+            'Message'      => $request->input('Message'),
+            'CreateDate'   => now(),
+            'IdUserSender' => $request->user()->IdUser,
+            'Active'       => 1,
+        ]);
+
+        broadcast(new MessageSent($item))->toOthers();
+
         return response()->json($item, 201);
     }
 
-    public function show($chat_messages)
+    public function show(Request $request, $chat_messages)
     {
         $item = ChatMessages::findOrFail($chat_messages);
+        $chat = Chats::findOrFail($item->IdChat);
+        $this->authorizeChatAccess($request, $chat);
+
         return response()->json($item);
     }
 
-    public function update(Request $request, $chat_messages)
+    public function destroy(Request $request, $chat_messages)
     {
         $item = ChatMessages::findOrFail($chat_messages);
-        $item->update($request->all());
-        return response()->json($item);
-    }
+        $chat = Chats::findOrFail($item->IdChat);
+        $this->authorizeChatAccess($request, $chat);
 
-    public function destroy($chat_messages)
-    {
-        $item = ChatMessages::findOrFail($chat_messages);
         $item->delete();
         return response()->json(null, 204);
     }
 
-    /**
-     * Resolve the per_page value from the request, falling back to a default
-     * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.
-     */
+    private function authorizeChatAccess(Request $request, Chats $chat): void
+    {
+        $me = $request->user()->IdUser;
+
+        if ((int) $chat->IdUserSender !== (int) $me && (int) $chat->IdUserReciver !== (int) $me) {
+            abort(403, 'Acces non autorise a cette conversation.');
+        }
+    }
+
     private function resolvePerPage(Request $request): int
     {
         $perPage = (int) $request->query('per_page', self::DEFAULT_PER_PAGE);
-
-        // Guard against negatives or absurdly large values
         return max(self::MIN_PER_PAGE, min($perPage, self::MAX_PER_PAGE));
     }
 }

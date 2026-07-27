@@ -206,6 +206,29 @@ class AdsController extends Controller
         ]);
     }
 
+    /**
+ * PATCH /api/ads/{ads}/activate
+ * Bascule ou force l'etat Active d'une annonce (reserve aux admins).
+ */
+public function activate(Request $request, $ads)
+{
+    $item = Ads::findOrFail($ads);
+
+    if ($request->has('Active')) {
+        $item->Active = (int) $request->input('Active');
+    } else {
+        // Pas de valeur envoyee -> on inverse l'etat actuel (toggle)
+        $item->Active = $item->Active ? 0 : 1;
+    }
+
+    $item->save();
+
+    return response()->json([
+        'message' => 'Statut mis a jour avec succes.',
+        'data'    => $item->fresh(),
+    ]);
+}
+
     public function destroy($ads)
     {
         $item = Ads::findOrFail($ads);

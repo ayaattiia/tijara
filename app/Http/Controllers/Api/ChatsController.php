@@ -13,9 +13,13 @@ class ChatsController extends Controller
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
 
+    /**
+     * GET /api/chats — uniquement les chats de l'utilisateur connecte
+     */
     public function index(Request $request)
     {
         $perPage = $this->resolvePerPage($request);
+        $me = $request->user()->IdUser;
 
         $query = $this->buildFilteredQuery(
             $request,
@@ -23,47 +27,88 @@ class ChatsController extends Controller
             [],
             ['IdUserSender', 'IdUserReciver', 'AdminReview', 'Active'],
             ['CreatedAt']
-        );
+        )->where(function ($q) use ($me) {
+            $q->where('IdUserSender', $me)->orWhere('IdUserReciver', $me);
+        });
 
         return response()->json($query->paginate($perPage));
     }
 
-    public function store(Request $request)
+    /**
+     * POST /api/chats/start   { "IdUserReciver": 5 }
+     * Retourne le chat existant entre les 2 users, ou en cree un.
+     */
+    public function start(Request $request)
     {
-        $data = $request->all();
-        $item = Chats::create($data);
-        return response()->json($item, 201);
+        $request->validate([
+            'IdUserReciver' => 'required|integer|exists:Users,IdUser',
+        ]);
+
+        $me = $request->user()->IdUser;
+        $other = $request->input('IdUserReciver');
+
+        if ($me == $other) {
+            return response()->json(['message' => 'Vous ne pouvez pas discuter avec vous-meme.'], 422);
+        }
+
+        $chat = Chats::where(function ($q) use ($me, $other) {
+            $q->where('IdUserSender', $me)->where('IdUserReciver', $other);
+        })->orWhere(function ($q) use ($me, $other) {
+            $q->where('IdUserSender', $other)->where('IdUserReciver', $me);
+        })->first();
+
+        if (!$chat) {
+            $chat = Chats::create([
+                'IdUserSender'  => $me,
+                'IdUserReciver' => $other,
+                'CreatedAt'     => now(),
+                'Active'        => 1,
+            ]);
+        }
+
+        return response()->json($chat, $chat->wasRecentlyCreated ? 201 : 200);
     }
 
-    public function show($chats)
+    public function show(Request $request, $chats)
     {
         $item = Chats::findOrFail($chats);
+        $this->authorizeChatAccess($request, $item);
+
         return response()->json($item);
     }
 
     public function update(Request $request, $chats)
     {
         $item = Chats::findOrFail($chats);
-        $item->update($request->all());
+        $this->authorizeChatAccess($request, $item);
+
+        // seuls Active/AdminReview ont du sens a modifier ici, pas les IdUser*
+        $item->update($request->only(['Active', 'AdminReview']));
+
         return response()->json($item);
     }
 
-    public function destroy($chats)
+    public function destroy(Request $request, $chats)
     {
         $item = Chats::findOrFail($chats);
+        $this->authorizeChatAccess($request, $item);
+
         $item->delete();
         return response()->json(null, 204);
     }
 
-    /**
-     * Resolve the per_page value from the request, falling back to a default
-     * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.
-     */
+    private function authorizeChatAccess(Request $request, Chats $chat): void
+    {
+        $me = $request->user()->IdUser;
+
+        if ((int) $chat->IdUserSender !== (int) $me && (int) $chat->IdUserReciver !== (int) $me) {
+            abort(403, 'Acces non autorise a cette conversation.');
+        }
+    }
+
     private function resolvePerPage(Request $request): int
     {
         $perPage = (int) $request->query('per_page', self::DEFAULT_PER_PAGE);
-
-        // Guard against negatives or absurdly large values
         return max(self::MIN_PER_PAGE, min($perPage, self::MAX_PER_PAGE));
     }
 }

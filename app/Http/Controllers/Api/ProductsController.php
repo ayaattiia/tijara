@@ -506,6 +506,23 @@ public function removeVideo(Request $request, $products)
         ),
     ]);
 }
+/**
+ * PATCH /api/products/{products}/activate   (admin only)
+ */
+public function activate(Request $request, $products)
+{
+    $request->validate(['Active' => 'required|boolean']);
+
+    $item = Products::findOrFail($products);
+    $item->Active = $request->boolean('Active');
+    $item->save();
+
+    return response()->json([
+        'message' => $item->Active
+            ? 'Product activated successfully.'
+            : 'Product deactivated successfully.'
+    ]);
+}
 
 
 }

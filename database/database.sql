@@ -2003,6 +2003,14 @@ ADD COLUMN IF NOT EXISTS IdDeal INT(11) NULL AFTER idPrize;
 -- Foreign Keys
 -- ===============================
 
+
+ALTER TABLE ChatMessages
+ADD PRIMARY KEY (IdChatMessage);
+
+ALTER TABLE ChatMessages
+MODIFY COLUMN IdChatMessage BIGINT(20) NOT NULL AUTO_INCREMENT;
+
+
 ALTER TABLE Deals
 ADD CONSTRAINT FK_Deals_Products
 FOREIGN KEY (IdProduct)

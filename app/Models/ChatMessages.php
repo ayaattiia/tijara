@@ -11,7 +11,6 @@ class ChatMessages extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'IdChatMessage',
         'IdChat',
         'Message',
         'CreateDate',
