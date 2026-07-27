@@ -245,6 +245,33 @@ CREATE TABLE `chatmessages` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `ChatMessageAttachments`
+--
+CREATE TABLE ChatMessageAttachments (
+    IdAttachment BIGINT NOT NULL AUTO_INCREMENT,
+    IdChatMessage BIGINT NOT NULL,
+
+    OriginalName VARCHAR(255) NOT NULL,
+    FileName VARCHAR(255) NOT NULL,
+    FilePath VARCHAR(500) NOT NULL,
+
+    MimeType VARCHAR(100) NOT NULL,
+    FileSize BIGINT NOT NULL,
+
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Active INT DEFAULT 1,
+
+    PRIMARY KEY (IdAttachment),
+
+    CONSTRAINT FK_ChatMessageAttachments_ChatMessages
+        FOREIGN KEY (IdChatMessage)
+        REFERENCES ChatMessages(IdChatMessage)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+
+--
 -- Structure de la table `chats`
 --
 

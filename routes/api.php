@@ -59,6 +59,8 @@ use App\Http\Controllers\Api\WalletsController;
 use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
+use App\Http\Controllers\Api\ChatMessageAttachmentsController;
+
 
 
 /*
@@ -303,6 +305,21 @@ Route::middleware('auth:api')->group(function () {
 
 
 
+
+Route::get(
+    '/chat-attachments/{id}',
+    [ChatMessageAttachmentsController::class, 'show']
+);
+
+Route::get(
+    '/chat-attachments/{id}/download',
+    [ChatMessageAttachmentsController::class, 'download']
+);
+
+Route::delete(
+    '/chat-attachments/{id}',
+    [ChatMessageAttachmentsController::class, 'destroy']
+);
     // ---- Wishlists (buyer only, requires login) ----
     Route::post('/ads-wishlist/add', [AdsWishlistController::class, 'addToWishlist']);
     Route::delete('/ads-wishlist/remove', [AdsWishlistController::class, 'removeFromWishlist']);

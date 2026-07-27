@@ -25,6 +25,12 @@ class ChatMessages extends Model
         return $this->belongsTo(\App\Models\Chats::class, 'IdChat', 'IdChat');
     }
 
+    public function attachments()
+    {
+        return $this->hasMany(\App\Models\ChatMessageAttachments::class, 'IdChatMessage', 'IdChatMessage');    
+    }
+
+
     public function usersender()
     {
         return $this->belongsTo(\App\Models\Users::class, 'IdUserSender', 'IdUser');
