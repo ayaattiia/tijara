@@ -287,7 +287,6 @@ Route::middleware('auth:api')->group(function () {
 
 
 
-<<<<<<< HEAD
 
 Route::get(
     '/chat-attachments/{id}',
@@ -303,7 +302,6 @@ Route::delete(
     '/chat-attachments/{id}',
     [ChatMessageAttachmentsController::class, 'destroy']
 );
-=======
     // ---- Wishlists (buyer only, requires login) ----
     Route::post('/ads-wishlist/add', [AdsWishlistController::class, 'addToWishlist']);
     Route::delete('/ads-wishlist/remove', [AdsWishlistController::class, 'removeFromWishlist']);
@@ -331,7 +329,6 @@ Route::delete(
     // ... rest unchanged ...
 
 
->>>>>>> c1df22ce56addb9c1f9f1e42b8be9cf6ba8dbb88
 });
 
 
