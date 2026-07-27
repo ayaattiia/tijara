@@ -47,7 +47,7 @@ class Users extends Authenticatable
         'Location',
         'LastConnection',
         'Active',
-        'City',,
+        'City',
         'LastViewedAt',
         'ViewCount',
         'RecentlyViewed',

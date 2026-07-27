@@ -54,19 +54,20 @@ use App\Http\Controllers\Api\TransportsController;
 use App\Http\Controllers\Api\TypeCategoryController;
 use App\Http\Controllers\Api\UserFollowsController;
 use App\Http\Controllers\Api\UsersController;
+use App\Http\Controllers\Api\VendorsController;
 use App\Http\Controllers\Api\WalletsController;
 use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
-use App\Http\Controllers\Api\ChatMessageAttachmentsController;
-use App\Http\Controllers\Api\ViewController;
-
 
 
 /*
 |--------------------------------------------------------------------------
 | 1) ROUTES PUBLIQUES — pas d'authentification requise
-|    (navigation/consultation, comme un visiteur non connecte sur Wamia.tn)
+|    Uniquement : creation de compte, connexion, et consultation en
+|    LECTURE SEULE du catalogue (comme un visiteur non connecte).
+|    Aucun apiResource complet ici : ca ouvrirait store/update/destroy
+|    a tout le monde et rendrait les middlewares plus bas inutiles.
 |--------------------------------------------------------------------------
 */
 
@@ -78,18 +79,17 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/auth/facebook', [AuthController::class, 'redirectToFacebook']);
 Route::get('/auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
 
-// Consultation publique du catalogue
+// ---- Catalogue produits (lecture seule) ----
 Route::get('/products', [ProductsController::class, 'index']);
-Route::get('/products/{products}', [ProductsController::class, 'show']);
 Route::get('/products/search/{search}', [ProductsController::class, 'search']);
 Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCategory']);
 Route::get('/products/user/{IdUser}', [ProductsController::class, 'byUser']);
 Route::get('/products/price/{min_price}/{max_price}', [ProductsController::class, 'byPriceRange']);
 Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);
-Route::get('/views/product/{id}', [ViewController::class, 'productStats']);
+Route::get('/products/{products}', [ProductsController::class, 'show']);
 
+// ---- Annonces (lecture seule) ----
 Route::get('/ads', [AdsController::class, 'index']);
-Route::get('/ads/{ads}', [AdsController::class, 'show']);
 Route::get('/ads/search/{search}', [AdsController::class, 'search']);
 Route::get('/ads/category/{IdCateg}', [AdsController::class, 'byCategory']);
 Route::get('/ads/typecat/{Idtypecat}', [AdsController::class, 'byTypeCat']);
@@ -98,30 +98,53 @@ Route::get('/ads/country/{IdCountry}', [AdsController::class, 'byCountry']);
 Route::get('/ads/user/{IdUser}', [AdsController::class, 'byUser']);
 Route::get('/ads/price/{min_price}/{max_price}', [AdsController::class, 'byPriceRange']);
 Route::get('/ads/active/{Active}', [AdsController::class, 'byActive']);
-Route::get('/views/ad/{id}', [ViewController::class, 'adStats']);
+Route::get('/ads/{ads}', [AdsController::class, 'show']);
 
-Route::get('/deliveries/track/{trackingNumber}', [DeliveriesController::class, 'track']);
-
+// ---- Deals / promotions (lecture seule) ----
 Route::get('/deals', [DealsController::class, 'index']);
 Route::get('/deals/{deals}', [DealsController::class, 'show']);
 
+// ---- Referentiels publics (necessaires pour naviguer / s'inscrire) ----
 Route::get('/categories-roots', [CategoriesController::class, 'roots']);
 Route::get('/categories/{categories}/children', [CategoriesController::class, 'children']);
+Route::apiResource('categories', CategoriesController::class)->only(['index', 'show']);
+Route::apiResource('brands', BrandsController::class)->only(['index', 'show']);
+Route::apiResource('cities', CitiesController::class)->only(['index', 'show']);
+Route::apiResource('countries', CountriesController::class)->only(['index', 'show']);
+Route::apiResource('countries-full', CountriesFullController::class)->only(['index', 'show']);
+Route::apiResource('states', StatesController::class)->only(['index', 'show']);
+Route::apiResource('causes', CausesController::class)->only(['index', 'show']);
+Route::apiResource('features', FeaturesController::class)->only(['index', 'show']);
+Route::apiResource('features-values', FeaturesValuesController::class)->only(['index', 'show']);
+Route::apiResource('feature-categories', FeatureCategoriesController::class)->only(['index', 'show']);
+Route::apiResource('transports', TransportsController::class)->only(['index', 'show']);
+Route::apiResource('type-category', TypeCategoryController::class)->only(['index', 'show']);
+Route::apiResource('labels', LabelsController::class)->only(['index', 'show']);
+Route::apiResource('point-packets', PointPacketsController::class)->only(['index', 'show']); // pricing packs
+Route::apiResource('boost-ads-packs', BoostAdsPacksController::class)->only(['index', 'show']); // pricing packs
+Route::apiResource('prizes', PrizesController::class)->only(['index', 'show']); // catalogue public de lots
+Route::apiResource('vendors', VendorsController::class)->only(['index', 'show']); // fiches vendeurs publiques
 
+// ---- Avis / notes (lecture seule, preuve sociale) ----
+Route::apiResource('reviews', ReviewsController::class)->only(['index', 'show']);
+Route::apiResource('ratings', RatingsController::class)->only(['index', 'show']);
+
+// ---- Coupons : verification uniquement (pas de listing public) ----
 Route::post('/coupons/validate', [CouponsController::class, 'validateCoupon']);
 
-Route::get('/invoices/{number}/pdf', [InvoicesController::class, 'downloadPDF']);
+// ---- Paiement de facture via lien recu par email/SMS (numero = jeton) ----
 Route::get('/invoices/number/{number}', [InvoicesController::class, 'showByNumber']);
+Route::get('/invoices/{number}/pdf', [InvoicesController::class, 'downloadPDF']);
 Route::post('/invoices/{number}/pay', [InvoicesController::class, 'pay']);
 Route::post('/invoices/{number}/cancel', [InvoicesController::class, 'cancel']);
-Route::get('/invoices/{id}/pdf', [InvoicesController::class, 'downloadPDF']);
 
 
 /*
 |--------------------------------------------------------------------------
 | 2) ROUTES UTILISATEUR CONNECTE (auth:api) — cote "acheteur"
-|    IdRole = 1 (user), mais aussi accessible a 2 (entreprise) et 3 (admin)
-|    puisque ce sont toutes des actions d'achat/interaction standard
+|    IdRole = 1 (user), mais aussi accessible a 2 (entreprise) et 3 (admin).
+|    Les referentiels en lecture seule (categories, brands, ...) ne sont
+|    PAS redeclares ici : ils sont deja publics en Section 1.
 |--------------------------------------------------------------------------
 */
 
@@ -151,8 +174,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('ad-likes', AdLikesController::class);
     Route::apiResource('comments', CommentsController::class);
     Route::apiResource('likes', LikesController::class);
-    Route::apiResource('reviews', ReviewsController::class);
-    Route::apiResource('ratings', RatingsController::class);
+    // index/show publics (Section 1) ; ici on n'ouvre que la creation/edition/suppression
+    Route::apiResource('reviews', ReviewsController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('ratings', RatingsController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('messages', MessagesController::class);
 
     Route::post('/chats/start', [ChatsController::class, 'start']);
@@ -168,62 +192,27 @@ Route::middleware('auth:api')->group(function () {
 
     Route::apiResource('notifications', NotificationsController::class);
     Route::apiResource('user-follows', UserFollowsController::class);
-    Route::apiResource('tags', TagsController::class);
+    // index/show des tags publics si besoin ; ici creation/edition
+    Route::apiResource('tags', TagsController::class)->only(['store', 'update', 'destroy']);
 
     // ---- Commandes / paiements / livraisons (les siennes, cote acheteur) ----
+    // NB: le controleur doit filtrer index/show sur l'utilisateur connecte
+    // (sauf pour l'admin, qui a son propre acces global en Section 4).
     Route::apiResource('orders', OrdersController::class);
     Route::apiResource('order-details', OrderDetailsController::class);
     Route::get('/order-details/total/{idOrder}', [OrderDetailsController::class, 'total']);
-    Route::apiResource('payments', PaymentsController::class);
-    Route::apiResource('deliveries', DeliveriesController::class);
-    Route::apiResource('invoices', InvoicesController::class)->only(['show', 'store', 'update']);
+    Route::apiResource('payments', PaymentsController::class)->only(['index', 'show', 'store']);
+    Route::apiResource('deliveries', DeliveriesController::class)->only(['index', 'show']);
+    Route::apiResource('invoices', InvoicesController::class)->only(['index', 'show', 'store']);
     Route::get('/customers/{id}/invoices', [InvoicesController::class, 'customerInvoices']);
-    Route::get('/payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
 
-    // ---- Profil / compte ----
-    Route::apiResource('users', UsersController::class);
-    Route::apiResource('wallets', WalletsController::class);
-    Route::apiResource('email-tokens', EmailTokensController::class);
-    Route::get('/views/recent', [ViewController::class, 'recent']);
+    // ---- Profil / compte (uniquement le sien : pas d'index ni destroy ici) ----
+    Route::get('/users/{users}', [UsersController::class, 'show']);
+    Route::put('/users/{users}', [UsersController::class, 'update']);
+    Route::get('/wallets/{wallets}', [WalletsController::class, 'show']);
 
-    // ---- Signalements ----
-    Route::apiResource('reports', ReportsController::class);
-
-    // ---- Referentiels en lecture seule ----
-    Route::apiResource('categories', CategoriesController::class)->only(['index', 'show']);
-    Route::apiResource('brands', BrandsController::class)->only(['index', 'show']);
-    Route::apiResource('cities', CitiesController::class)->only(['index', 'show']);
-    Route::apiResource('countries', CountriesController::class)->only(['index', 'show']);
-    Route::apiResource('countries-full', CountriesFullController::class)->only(['index', 'show']);
-    Route::apiResource('states', StatesController::class)->only(['index', 'show']);
-    Route::apiResource('causes', CausesController::class)->only(['index', 'show']);
-    Route::apiResource('features', FeaturesController::class)->only(['index', 'show']);
-    Route::apiResource('features-values', FeaturesValuesController::class)->only(['index', 'show']);
-    Route::apiResource('feature-categories', FeatureCategoriesController::class)->only(['index', 'show']);
-    Route::apiResource('transports', TransportsController::class)->only(['index', 'show']);
-    Route::apiResource('type-category', TypeCategoryController::class)->only(['index', 'show']);
-    Route::apiResource('labels', LabelsController::class)->only(['index', 'show']);
-    Route::apiResource('point-packets', PointPacketsController::class)->only(['index', 'show']);
-    Route::apiResource('coupons', CouponsController::class)->only(['index', 'show']);
-    Route::apiResource('prizes', PrizesController::class)->only(['index', 'show']);
-
-
-
-
-Route::get(
-    '/chat-attachments/{id}',
-    [ChatMessageAttachmentsController::class, 'show']
-);
-
-Route::get(
-    '/chat-attachments/{id}/download',
-    [ChatMessageAttachmentsController::class, 'download']
-);
-
-Route::delete(
-    '/chat-attachments/{id}',
-    [ChatMessageAttachmentsController::class, 'destroy']
-);
+    // ---- Signalements (creer / consulter les siens) ----
+    Route::apiResource('reports', ReportsController::class)->only(['index', 'show', 'store']);
 });
 
 
@@ -260,26 +249,34 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
     Route::apiResource('deals', DealsController::class)->except(['index', 'show']);
 
     // ---- Boost des annonces/produits (visibilite payante) ----
-    Route::apiResource('boost-ads-packs', BoostAdsPacksController::class)->only(['index', 'show']);
-    Route::apiResource('boosts', BoostsController::class)->only(['index', 'show']);
+    // Consultation des packs disponibles + achat/gestion de ses propres boosts
+    Route::apiResource('boosts', BoostsController::class)->except(['index']);
+
+    // ---- Livraisons liees a ses ventes ----
+    Route::get('/deliveries/order/{idOrder}', [DeliveriesController::class, 'orderDeliveries']);
+    Route::get('/deliveries/track/{trackingNumber}', [DeliveriesController::class, 'track']);
+    Route::post('/deliveries/{id}/deliver', [DeliveriesController::class, 'markDelivered']);
+    Route::post('/deliveries/{id}/status', [DeliveriesController::class, 'updateStatus']);
+    Route::apiResource('deliveries', DeliveriesController::class)->only(['store', 'update']);
+
+    // ---- Transport de ses colis ----
+    Route::get('/transports/order/{idOrder}', [TransportsController::class, 'orderTransports']);
+    Route::get('/transports/{id}/deliveries', [TransportsController::class, 'transportDeliveries']);
 
     // ---- Espace vendeur : sa fiche entreprise + ses ventes ----
-    // Route::apiResource('vendors', VendorsController::class);
+    Route::apiResource('vendors', VendorsController::class)->only(['store', 'update', 'destroy']);
     Route::get('/vendors/{id}/invoices', [InvoicesController::class, 'vendorInvoices']);
-    Route::apiResource('invoices', InvoicesController::class)->only(['index', 'destroy']);
+    Route::apiResource('invoices', InvoicesController::class)->only(['index'])->names('vendor.invoices.index');
 
-
-
-    Route::apiResource('deliveries', DeliveriesController::class)->only(['store', 'update']);
-    Route::post('/deliveries/{id}/status', [DeliveriesController::class, 'updateStatus']);
-    Route::post('/deliveries/{id}/deliver', [DeliveriesController::class, 'markDelivered']);
-    Route::get('/deliveries/order/{idOrder}', [DeliveriesController::class, 'orderDeliveries']);
+    // ---- Suivi de ses paiements recus ----
+    Route::get('/payments/order/{idOrder}', [PaymentsController::class, 'orderPayments']);
 });
 
 
 /*
 |--------------------------------------------------------------------------
 | 4) ROUTES ADMIN UNIQUEMENT — auth:api + middleware 'admin' (IdRole = 3)
+|    Acces global / transverse a toute la plateforme.
 |--------------------------------------------------------------------------
 */
 
@@ -295,11 +292,29 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::apiResource('permissions', PermissionsController::class);
     Route::apiResource('list-permissions', ListPermissionsController::class);
 
+    // ---- Gestion globale des comptes (au-dela de son propre profil) ----
+    Route::apiResource('users', UsersController::class)->only(['index', 'destroy']);
+    Route::apiResource('wallets', WalletsController::class)->only(['index', 'update', 'destroy']);
+    Route::apiResource('email-tokens', EmailTokensController::class);
+
+    // ---- Vision globale des commandes / paiements / factures ----
+    Route::apiResource('orders', OrdersController::class)->only(['index', 'destroy']);
+    Route::get('/payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
+    Route::post('/payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
+    Route::post('/payments/{id}/refund', [PaymentsController::class, 'refund']);
+    Route::get('/payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
+    Route::apiResource('payments', PaymentsController::class)->only(['index', 'update', 'destroy']);
+    Route::apiResource('invoices', InvoicesController::class)->only(['index', 'update', 'destroy']);
+    Route::apiResource('deliveries', DeliveriesController::class)->only(['index', 'destroy']);
+    Route::apiResource('transports', TransportsController::class)->except(['index', 'show']);
+    Route::get('/transports/date-range', [TransportsController::class, 'dateRange']);
+    Route::get('/transports/{id}/stats', [TransportsController::class, 'stats']);
+    Route::post('/transports/{id}/toggle-active', [TransportsController::class, 'toggleActive']);
+
     // ---- Configuration de la plateforme ----
     Route::apiResource('admin-settings', AdminSettingsController::class);
     Route::apiResource('type-category', TypeCategoryController::class)->except(['index', 'show']);
     Route::apiResource('labels', LabelsController::class)->except(['index', 'show']);
-    Route::apiResource('transports', TransportsController::class)->except(['index', 'show']);
     Route::apiResource('features', FeaturesController::class)->except(['index', 'show']);
     Route::apiResource('features-values', FeaturesValuesController::class)->except(['index', 'show']);
     Route::apiResource('feature-categories', FeatureCategoriesController::class)->except(['index', 'show']);
@@ -313,35 +328,27 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::apiResource('causes-reports', CausesReportsController::class);
 
     // ---- Offres commerciales de la plateforme (packs, coupons, boosts, prizes) ----
-    Route::apiResource('coupons', CouponsController::class)->except(['index', 'show']);
+    // 'show' reste public (Section 1) ; l'admin gere index/store/update/destroy
+    Route::apiResource('coupons', CouponsController::class)->except(['show']);
     Route::apiResource('point-packets', PointPacketsController::class)->except(['index', 'show']);
     Route::apiResource('boost-ads-packs', BoostAdsPacksController::class)->except(['index', 'show']);
-    Route::apiResource('boosts', BoostsController::class)->except(['index', 'show']);
+    Route::apiResource('boosts', BoostsController::class)->only(['index']);
     Route::apiResource('prizes', PrizesController::class)->except(['index', 'show']);
     Route::apiResource('winners', WinnersController::class);
+
+    // ---- Vendeurs (moderation globale) ----
+    Route::apiResource('vendors', VendorsController::class)->only(['destroy']);
+
+    // ---- Avis / notes : moderation (suppression globale) ----
+    Route::apiResource('reviews', ReviewsController::class)->only(['destroy']);
+    Route::apiResource('ratings', RatingsController::class)->only(['destroy']);
 
     // ---- Supervision / logs ----
     Route::apiResource('sms-logs', SmsLogsController::class);
     Route::apiResource('errors', ErrorsController::class);
-    Route::apiResource('reports', ReportsController::class)->only(['index']);
+    Route::apiResource('reports', ReportsController::class)->only(['index', 'destroy']);
 
     // ---- Statistiques globales ----
     Route::get('/invoices/statistics', [InvoicesController::class, 'statistics']);
     Route::get('/invoices/revenue/monthly', [InvoicesController::class, 'monthlyRevenue']);
-
-    // ---- Gestion des commandes / paiements / livraisons ----
-    Route::post('/payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
-    Route::post('/payments/{id}/refund', [PaymentsController::class, 'refund']);
-    Route::get('/payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
-    Route::apiResource('payments', PaymentsController::class)->only(['destroy']);
-    
-    // ---- Gestion des transports ----
-    Route::get('/transports/date-range', [TransportsController::class, 'dateRange']);
-    Route::get('/transports/order/{idOrder}', [TransportsController::class, 'orderTransports']);
-    Route::get('/transports/{id}/deliveries', [TransportsController::class, 'transportDeliveries']);
-    Route::post('/transports/{id}/toggle-active', [TransportsController::class, 'toggleActive']);
-    Route::get('/transports/{id}/stats', [TransportsController::class, 'stats']);
-
-    Route::apiResource('deliveries', DeliveriesController::class)->only(['destroy']);
-
 });
