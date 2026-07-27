@@ -54,12 +54,12 @@ use App\Http\Controllers\Api\TransportsController;
 use App\Http\Controllers\Api\TypeCategoryController;
 use App\Http\Controllers\Api\UserFollowsController;
 use App\Http\Controllers\Api\UsersController;
-use App\Http\Controllers\Api\ViewController;
 use App\Http\Controllers\Api\WalletsController;
 use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
 use App\Http\Controllers\Api\ChatMessageAttachmentsController;
+use App\Http\Controllers\Api\ViewController;
 
 
 
@@ -78,90 +78,6 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/auth/facebook', [AuthController::class, 'redirectToFacebook']);
 Route::get('/auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
 
-
-
-
-//hathom par exemple mayet3amlouch min8ir login
-//kaa admin wala entreprise nheb naraf chkoun amali comments par exemple wala like
-Route::apiResource('ad-comments', AdCommentsController::class);
-Route::apiResource('ad-likes', AdLikesController::class);
-Route::apiResource('admin-settings', AdminSettingsController::class);
-
-
-Route::apiResource('boost-ads-packs', BoostAdsPacksController::class);
-Route::apiResource('boosts', BoostsController::class);
-Route::apiResource('brands', BrandsController::class);
-
-
-Route::get('categories-roots', [CategoriesController::class, 'roots']);
-Route::get('categories/{categories}/children', [CategoriesController::class, 'children']);
-Route::apiResource('categories', CategoriesController::class);
-
-
-Route::apiResource('causes', CausesController::class);
-Route::apiResource('causes-reports', CausesReportsController::class);
-Route::apiResource('chat-messages', ChatMessagesController::class);
-Route::apiResource('chats', ChatsController::class);
-Route::apiResource('cities', CitiesController::class);
-Route::apiResource('comments', CommentsController::class);
-Route::apiResource('countries', CountriesController::class);
-Route::apiResource('countries-full', CountriesFullController::class);
-Route::apiResource('coupons', CouponsController::class);
-Route::apiResource('deals', DealsController::class);
-
-
-
-
-Route::get('deliveries/track/{trackingNumber}', [DeliveriesController::class, 'track']);
-
-
-
-Route::apiResource('email-tokens', EmailTokensController::class);
-Route::apiResource('errors', ErrorsController::class);
-Route::apiResource('feature-categories', FeatureCategoriesController::class);
-Route::apiResource('features', FeaturesController::class);
-Route::apiResource('features-values', FeaturesValuesController::class);
-Route::apiResource('invoices', InvoicesController::class);
-Route::apiResource('labels', LabelsController::class);
-Route::apiResource('likes', LikesController::class);
-Route::apiResource('list-permissions', ListPermissionsController::class);
-Route::apiResource('messages', MessagesController::class);
-Route::apiResource('notifications', NotificationsController::class);
-Route::apiResource('order-details', OrderDetailsController::class);
-Route::apiResource('orders', OrdersController::class);
-// Custom routes FIRST
-Route::get('payments/order/{idOrder}', [PaymentsController::class, 'orderPayments']);
-Route::get('payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
-Route::post('payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
-Route::post('payments/{id}/refund', [PaymentsController::class, 'refund']);
-Route::get('payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
-
-Route::apiResource('permissions', PermissionsController::class);
-Route::apiResource('point-packets', PointPacketsController::class);
-Route::apiResource('prizes', PrizesController::class);
-Route::apiResource('products', ProductsController::class);
-
-Route::apiResource('ratings', RatingsController::class);
-Route::apiResource('reports', ReportsController::class);
-Route::apiResource('reviews', ReviewsController::class);
-Route::apiResource('roles', RolesController::class);
-Route::apiResource('sms-logs', SmsLogsController::class);
-Route::apiResource('states', StatesController::class);
-Route::apiResource('tags', TagsController::class);
-
-Route::apiResource('transports', TransportsController::class)->only(['index', 'show']);
-Route::apiResource('type-category', TypeCategoryController::class);
-Route::apiResource('user-follows', UserFollowsController::class);
-Route::apiResource('users', UsersController::class);
-Route::apiResource('wallets', WalletsController::class);
-Route::apiResource('winners', WinnersController::class);
-Route::apiResource('wishlist-ads', WishlistAdsController::class);
-Route::apiResource('wishlist-deals', WishlistDealsController::class);
-
-
-
-// ---- Routes publiques (non auth) ----
-
 // Consultation publique du catalogue
 Route::get('/products', [ProductsController::class, 'index']);
 Route::get('/products/{products}', [ProductsController::class, 'show']);
@@ -170,6 +86,7 @@ Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCat
 Route::get('/products/user/{IdUser}', [ProductsController::class, 'byUser']);
 Route::get('/products/price/{min_price}/{max_price}', [ProductsController::class, 'byPriceRange']);
 Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);
+Route::get('/views/product/{id}', [ViewController::class, 'productStats']);
 
 Route::get('/ads', [AdsController::class, 'index']);
 Route::get('/ads/{ads}', [AdsController::class, 'show']);
@@ -181,6 +98,9 @@ Route::get('/ads/country/{IdCountry}', [AdsController::class, 'byCountry']);
 Route::get('/ads/user/{IdUser}', [AdsController::class, 'byUser']);
 Route::get('/ads/price/{min_price}/{max_price}', [AdsController::class, 'byPriceRange']);
 Route::get('/ads/active/{Active}', [AdsController::class, 'byActive']);
+Route::get('/views/ad/{id}', [ViewController::class, 'adStats']);
+
+Route::get('/deliveries/track/{trackingNumber}', [DeliveriesController::class, 'track']);
 
 Route::get('/deals', [DealsController::class, 'index']);
 Route::get('/deals/{deals}', [DealsController::class, 'show']);
@@ -196,25 +116,7 @@ Route::post('/invoices/{number}/pay', [InvoicesController::class, 'pay']);
 Route::post('/invoices/{number}/cancel', [InvoicesController::class, 'cancel']);
 Route::get('/invoices/{id}/pdf', [InvoicesController::class, 'downloadPDF']);
 
-// Products
-Route::get(
-    '/products/{products}',
-    [ProductsController::class, 'show']
-);
 
-
-// Ads
-Route::get(
-    '/ads/{ads}',
-    [AdsController::class, 'show']
-);
-
-
-// User profiles
-Route::get(
-    '/users/{users}',
-    [UsersController::class, 'show']
-);
 /*
 |--------------------------------------------------------------------------
 | 2) ROUTES UTILISATEUR CONNECTE (auth:api) — cote "acheteur"
@@ -276,11 +178,13 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('deliveries', DeliveriesController::class);
     Route::apiResource('invoices', InvoicesController::class)->only(['show', 'store', 'update']);
     Route::get('/customers/{id}/invoices', [InvoicesController::class, 'customerInvoices']);
+    Route::get('/payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
 
     // ---- Profil / compte ----
     Route::apiResource('users', UsersController::class);
     Route::apiResource('wallets', WalletsController::class);
     Route::apiResource('email-tokens', EmailTokensController::class);
+    Route::get('/views/recent', [ViewController::class, 'recent']);
 
     // ---- Signalements ----
     Route::apiResource('reports', ReportsController::class);
@@ -320,54 +224,7 @@ Route::delete(
     '/chat-attachments/{id}',
     [ChatMessageAttachmentsController::class, 'destroy']
 );
-    // ---- Wishlists (buyer only, requires login) ----
-    Route::post('/ads-wishlist/add', [AdsWishlistController::class, 'addToWishlist']);
-    Route::delete('/ads-wishlist/remove', [AdsWishlistController::class, 'removeFromWishlist']);
-    Route::apiResource('ads-wishlist', AdsWishlistController::class);
-
-    Route::post('/deals-wishlist/add', [DealsWishlistController::class, 'addToWishlist']);
-    Route::delete('/deals-wishlist/remove', [DealsWishlistController::class, 'removeFromWishlist']);
-    Route::apiResource('deals-wishlist', DealsWishlistController::class);
-
-    Route::post('/product-wishlist/add', [ProductWishlistController::class, 'addToWishlist']);
-    Route::delete('/product-wishlist/remove', [ProductWishlistController::class, 'removeFromWishlist']);
-    Route::apiResource('product-wishlist', ProductWishlistController::class);
-
-    // ---- Payments (buyer initiates payment, views own history — cannot complete/refund) ----
-    Route::apiResource('payments', PaymentsController::class)->only(['index', 'store', 'show']);
-    Route::get('/payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
-
-    // ---- Deliveries (buyer can view/track their own orders' packages, not manage them) ----
-    Route::apiResource('deliveries', DeliveriesController::class)->only(['index', 'show']);
-    Route::get('/deliveries/order/{idOrder}', [DeliveriesController::class, 'orderDeliveries']);
-
-    // ---- Transports read-only (already public, but harmless if kept here too — optional, can remove) ----
-    // Route::apiResource('transports', TransportsController::class)->only(['index', 'show']); // redundant, public already covers it
-
-    // ... rest unchanged ...
-    Route::get(
-        '/views/recent',
-        [ViewController::class, 'recent']
-    );
-
-    Route::get(
-        '/views/product/{id}',
-        [ViewController::class, 'productStats']
-    );
-
-
-    Route::get(
-        '/views/ad/{id}',
-        [ViewController::class, 'adStats']
-    );
-
-    // View user profile (same public route but with token)
-    Route::get(
-        '/users/{users}',
-        [UsersController::class, 'show']
-    );
 });
-
 
 
 /*
@@ -406,38 +263,17 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
     Route::apiResource('boost-ads-packs', BoostAdsPacksController::class)->only(['index', 'show']);
     Route::apiResource('boosts', BoostsController::class)->only(['index', 'show']);
 
-
+    // ---- Espace vendeur : sa fiche entreprise + ses ventes ----
+    // Route::apiResource('vendors', VendorsController::class);
     Route::get('/vendors/{id}/invoices', [InvoicesController::class, 'vendorInvoices']);
     Route::apiResource('invoices', InvoicesController::class)->only(['index', 'destroy']);
-    // ---- Deliveries: vendor creates/manages colis for their own orders ----
+
+
+
     Route::apiResource('deliveries', DeliveriesController::class)->only(['store', 'update']);
     Route::post('/deliveries/{id}/status', [DeliveriesController::class, 'updateStatus']);
     Route::post('/deliveries/{id}/deliver', [DeliveriesController::class, 'markDelivered']);
     Route::get('/deliveries/order/{idOrder}', [DeliveriesController::class, 'orderDeliveries']);
-
-    // ---- Payments: vendor can check payment status on their own orders, but not complete/refund ----
-    Route::apiResource('payments', PaymentsController::class)->only(['index', 'show']);
-    Route::get('/payments/order/{idOrder}', [PaymentsController::class, 'orderPayments']);
-
-    // Vendor recently viewed
-    Route::get(
-        '/views/recent',
-        [ViewController::class, 'recent']
-    );
-
-
-    // Product view statistics
-    Route::get(
-        '/views/product/{id}',
-        [ViewController::class, 'productStats']
-    );
-
-
-    // Ad view statistics
-    Route::get(
-        '/views/ad/{id}',
-        [ViewController::class, 'adStats']
-    );
 });
 
 
@@ -493,45 +329,19 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::get('/invoices/statistics', [InvoicesController::class, 'statistics']);
     Route::get('/invoices/revenue/monthly', [InvoicesController::class, 'monthlyRevenue']);
 
-    // ---- Transports: full carrier management (already existed, unchanged) ----
-    Route::apiResource('transports', TransportsController::class)->except(['index', 'show']);
+    // ---- Gestion des commandes / paiements / livraisons ----
+    Route::post('/payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
+    Route::post('/payments/{id}/refund', [PaymentsController::class, 'refund']);
+    Route::get('/payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
+    Route::apiResource('payments', PaymentsController::class)->only(['destroy']);
+    
+    // ---- Gestion des transports ----
     Route::get('/transports/date-range', [TransportsController::class, 'dateRange']);
     Route::get('/transports/order/{idOrder}', [TransportsController::class, 'orderTransports']);
     Route::get('/transports/{id}/deliveries', [TransportsController::class, 'transportDeliveries']);
     Route::post('/transports/{id}/toggle-active', [TransportsController::class, 'toggleActive']);
     Route::get('/transports/{id}/stats', [TransportsController::class, 'stats']);
 
-    // ---- Deliveries: admin can delete/override any delivery record ----
     Route::apiResource('deliveries', DeliveriesController::class)->only(['destroy']);
 
-    // ---- Payments: sensitive money actions restricted to admin ----
-    Route::post('/payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
-    Route::post('/payments/{id}/refund', [PaymentsController::class, 'refund']);
-    Route::get('/payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
-    Route::apiResource('payments', PaymentsController::class)->only(['destroy']);
-
-    // Any user's recent views (if needed)
-    Route::get(
-        '/views/recent',
-        [ViewController::class, 'recent']
-    );
-
-
-    // Product statistics
-    Route::get(
-        '/views/product/{id}',
-        [ViewController::class, 'productStats']
-    );
-
-
-    // Ad statistics
-    Route::get(
-        '/views/ad/{id}',
-        [ViewController::class, 'adStats']
-    );
-
-    Route::get(
-        '/users/{users}',
-        [UsersController::class, 'show']
-    );
 });
