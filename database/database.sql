@@ -2028,3 +2028,10 @@ ON UPDATE CASCADE;
 SET FOREIGN_KEY_CHECKS = 1;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+
+
+
+
+leee fil phpmyadmin
