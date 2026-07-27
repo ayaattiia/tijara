@@ -34,12 +34,13 @@ class Invoices extends Model
         return $this->belongsTo(\App\Models\Users::class, 'IdUser', 'IdUser');
     }
 
+    // IdVendor now references Users.IdUser (a user whose IdRole = 2, Vendor)
     public function vendor()
     {
         return $this->belongsTo(
-            Vendor::class,
+            \App\Models\Users::class,
             'IdVendor',
-            'IdVendor'
+            'IdUser'
         );
     }
 }

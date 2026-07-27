@@ -259,7 +259,7 @@ class InvoicesController extends Controller
 
             $customer = $order->user;
 
-            $vendor = Vendor::first();
+            $vendor = Users::where('IdRole', 2)->first();
 
             if (!$vendor) {
 
@@ -329,7 +329,7 @@ class InvoicesController extends Controller
 
                 'IdUser' => $customer->IdUser,
 
-                'IdVendor' => $vendor->IdVendor,
+                'IdVendor' => $vendor->IdUser,
 
                 'Subtotal' => $subtotal,
 
@@ -381,6 +381,7 @@ class InvoicesController extends Controller
             ], 500);
         }
     }
+
     public function show($id)
     {
         $invoice = Invoices::with([
@@ -560,8 +561,16 @@ class InvoicesController extends Controller
         $invoice = Invoices::with([
             'vendor',
             'user',
-            'order.details.product'
+            'order.details.product',
+            'order.payments'
         ])->findOrFail($id);
+
+        $payment = $invoice->order->payments->sortByDesc('PaidAt')->first();
+
+        $paymentMethod = $payment
+            ? $payment->Method
+            : ($invoice->PaymentMethod ?? '—');
+
 
         $subtotal = 0;
         $discount = 0;
@@ -599,20 +608,17 @@ class InvoicesController extends Controller
 
             'invoice' => $invoice,
 
+            'paymentMethod' => $paymentMethod,
+
+
+
             'subtotal' => $subtotal,
-
             'discount' => $discount,
-
             'netHT' => $netHT,
-
             'fodec' => $fodec,
-
             'tva' => $tva,
-
             'delivery' => $delivery,
-
             'timbre' => $timbre,
-
             'totalTTC' => $totalTTC
 
         ])->download($invoice->Number . '.pdf');

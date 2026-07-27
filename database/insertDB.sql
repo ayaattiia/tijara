@@ -771,27 +771,26 @@ INSERT INTO `featuresvalues` (`IdFV`, `ValueFeature`, `IdFeature`, `Active`) VAL
 --
 
 INSERT INTO `invoices` (`IdInvoice`, `Number`, `IdOrder`, `IdUser`, `IdVendor`, `Subtotal`, `Tax`, `DeliveryFee`, `Total`, `Status`, `IssuedAt`, `PaidAt`) VALUES
-(11, 'INV-2026001', 11, 11, 12, 4500.000, 855.000, 6.000, 5361.000, 'paid', '2026-07-02 09:00:00', '2026-07-02 15:00:00'),
-(12, 'INV-2026002', 12, 12, 13, 3200.000, 608.000, 7.000, 3815.000, 'paid', '2026-07-03 09:00:00', '2026-07-03 15:00:00'),
-(13, 'INV-2026003', 13, 13, 14, 2800.000, 532.000, 8.000, 3340.000, 'issued', '2026-07-04 09:00:00', '2026-07-04 15:00:00'),
-(14, 'INV-2026004', 14, 14, 15, 900.000, 171.000, 9.000, 1080.000, 'paid', '2026-07-05 09:00:00', '2026-07-05 15:00:00'),
-(15, 'INV-2026005', 15, 15, 16, 1450.000, 275.500, 10.000, 1735.500, 'paid', '2026-07-06 09:00:00', '2026-07-06 15:00:00'),
-(16, 'INV-2026006', 16, 16, 17, 2200.000, 418.000, 11.000, 2629.000, 'issued', '2026-07-07 09:00:00', '2026-07-07 15:00:00'),
-(17, 'INV-2026007', 17, 17, 18, 2500.000, 475.000, 12.000, 2987.000, 'paid', '2026-07-08 09:00:00', '2026-07-08 15:00:00'),
-(18, 'INV-2026008', 18, 18, 19, 250.000, 47.500, 13.000, 310.500, 'paid', '2026-07-09 09:00:00', '2026-07-09 15:00:00'),
-(19, 'INV-2026009', 19, 19, 20, 700.000, 133.000, 14.000, 847.000, 'issued', '2026-07-10 09:00:00', '2026-07-10 15:00:00'),
-(20, 'INV-2026010', 20, 20, 21, 180.000, 34.200, 15.000, 229.200, 'paid', '2026-07-11 09:00:00', '2026-07-11 15:00:00'),
-(21, 'INV-2026011', 21, 21, 22, 3600.000, 684.000, 16.000, 4300.000, 'paid', '2026-07-12 09:00:00', '2026-07-12 15:00:00'),
-(22, 'INV-2026012', 22, 22, 23, 900.000, 171.000, 17.000, 1088.000, 'issued', '2026-07-13 09:00:00', '2026-07-13 15:00:00'),
-(23, 'INV-2026013', 23, 23, 24, 3300.000, 627.000, 18.000, 3945.000, 'paid', '2026-07-14 09:00:00', '2026-07-14 15:00:00'),
-(24, 'INV-2026014', 24, 24, 25, 1100.000, 209.000, 19.000, 1328.000, 'paid', '2026-07-15 09:00:00', '2026-07-15 15:00:00'),
-(25, 'INV-2026015', 25, 25, 26, 1600.000, 304.000, 20.000, 1924.000, 'issued', '2026-07-16 09:00:00', '2026-07-16 15:00:00'),
-(26, 'INV-2026016', 26, 26, 27, 3900.000, 741.000, 21.000, 4662.000, 'paid', '2026-07-17 09:00:00', '2026-07-17 15:00:00'),
-(27, 'INV-2026017', 27, 27, 28, 1300.000, 247.000, 22.000, 1569.000, 'paid', '2026-07-18 09:00:00', '2026-07-18 15:00:00'),
-(28, 'INV-2026018', 28, 28, 29, 350.000, 66.500, 23.000, 439.500, 'issued', '2026-07-19 09:00:00', '2026-07-19 15:00:00'),
-(29, 'INV-2026019', 29, 29, 30, 550.000, 104.500, 24.000, 678.500, 'paid', '2026-07-20 09:00:00', '2026-07-20 15:00:00'),
-(30, 'INV-2026020', 30, 30, 11, 1200.000, 228.000, 25.000, 1453.000, 'paid', '2026-07-21 09:00:00', '2026-07-21 15:00:00');
-
+(12, 'test', 1, 1, 1, 100.000, 100.000, 100.000, 100.000, 'default', '2026-07-07 10:00:00', '2026-07-07 10:00:00'),
+(13, 'INV-2026003', 13, 13, 1, 2800.000, 532.000, 8.000, 3340.000, 'issued', '2026-07-04 09:00:00', '2026-07-04 15:00:00'),
+(14, 'INV-2026004', 14, 14, 1, 900.000, 171.000, 9.000, 1080.000, 'Cancelled', '2026-07-05 09:00:00', '2026-07-05 15:00:00'),
+(15, 'INV-2026005', 15, 15, 2, 1450.000, 275.500, 10.000, 1735.500, 'paid', '2026-07-06 09:00:00', '2026-07-06 15:00:00'),
+(16, 'INV-2026006', 16, 16, 1, 2200.000, 418.000, 11.000, 2629.000, 'issued', '2026-07-07 09:00:00', '2026-07-07 15:00:00'),
+(17, 'INV-2026007', 17, 17, 1, 2500.000, 475.000, 12.000, 2987.000, 'paid', '2026-07-08 09:00:00', '2026-07-08 15:00:00'),
+(18, 'INV-2026008', 18, 18, 2, 250.000, 47.500, 13.000, 310.500, 'paid', '2026-07-09 09:00:00', '2026-07-09 15:00:00'),
+(19, 'INV-2026009', 19, 19, 1, 700.000, 133.000, 14.000, 847.000, 'issued', '2026-07-10 09:00:00', '2026-07-10 15:00:00'),
+(20, 'INV-2026010', 20, 20, 1, 180.000, 34.200, 15.000, 229.200, 'paid', '2026-07-11 09:00:00', '2026-07-11 15:00:00'),
+(21, 'INV-2026011', 21, 21, 2, 3600.000, 684.000, 16.000, 4300.000, 'paid', '2026-07-12 09:00:00', '2026-07-12 15:00:00'),
+(22, 'INV-2026012', 22, 22, 1, 900.000, 171.000, 17.000, 1088.000, 'issued', '2026-07-13 09:00:00', '2026-07-13 15:00:00'),
+(23, 'INV-2026013', 23, 23, 1, 3300.000, 627.000, 18.000, 3945.000, 'paid', '2026-07-14 09:00:00', '2026-07-14 15:00:00'),
+(24, 'INV-2026014', 24, 24, 2, 1100.000, 209.000, 19.000, 1328.000, 'paid', '2026-07-15 09:00:00', '2026-07-15 15:00:00'),
+(25, 'INV-2026015', 25, 25, 1, 1600.000, 304.000, 20.000, 1924.000, 'issued', '2026-07-16 09:00:00', '2026-07-16 15:00:00'),
+(26, 'INV-2026016', 26, 26, 1, 3900.000, 741.000, 21.000, 4662.000, 'paid', '2026-07-17 09:00:00', '2026-07-17 15:00:00'),
+(27, 'INV-2026017', 27, 27, 2, 1300.000, 247.000, 22.000, 1569.000, 'Cancelled', '2026-07-18 09:00:00', '2026-07-18 15:00:00'),
+(28, 'INV-2026018', 28, 28, 1, 350.000, 66.500, 23.000, 439.500, 'issued', '2026-07-19 09:00:00', '2026-07-19 15:00:00'),
+(29, 'INV-2026019', 29, 29, 1, 550.000, 104.500, 24.000, 678.500, 'paid', '2026-07-20 09:00:00', '2026-07-20 15:00:00'),
+(30, 'INV-2026020', 30, 30, 2, 1200.000, 228.000, 25.000, 1453.000, 'paid', '2026-07-21 09:00:00', '2026-07-21 15:00:00'),
+(31, 'INV-2026-000001', 11, 11, 1, 3600.000, 684.000, 0.000, 4285.000, 'Paid', '2026-07-21 18:24:48', '2026-07-21 18:27:06');
 --
 -- Déchargement des données de la table `labels`
 --
@@ -1381,38 +1380,11 @@ INSERT INTO `reviews` (`IdReview`, `IdUser`, `TargetType`, `TargetId`, `Rating`,
 -- Déchargement des données de la table `roles`
 --
 
-INSERT INTO `roles` (`IdRole`, `RoleUser`, `Active`) VALUES
+INSERT INTO roles (IdRole, RoleUser, Active)
+VALUES
 (1, 'User', 1),
-(2, 'Entreprise', 1),
-(3, 'Admin', 1),
-(4, 'Moderator', 1),
-(5, 'Vendor', 1),
-(6, 'Customer', 1),
-(7, 'Partner', 1),
-(8, 'Manager', 1),
-(9, 'Support', 1),
-(10, 'Guest', 1),
-(11, 'User', 1),
-(12, 'Entreprise', 1),
-(13, 'Admin', 1),
-(14, 'Moderator', 1),
-(15, 'Vendor', 1),
-(16, 'Customer', 1),
-(17, 'Support', 1),
-(18, 'Manager', 1),
-(19, 'Editor', 1),
-(20, 'Analyst', 1),
-(21, 'Driver', 1),
-(22, 'Cashier', 1),
-(23, 'Supervisor', 1),
-(24, 'Auditor', 1),
-(25, 'Contributor', 1),
-(26, 'Reviewer', 1),
-(27, 'Distributor', 1),
-(28, 'Franchisee', 1),
-(29, 'Partner', 1),
-(30, 'Guest', 1);
-
+(2, 'Vendor', 1),
+(3, 'Admin', 1);
 --
 -- Déchargement des données de la table `smslogs`
 --
@@ -1584,28 +1556,32 @@ INSERT INTO `userfollows` (`IdFollow`, `IdUser`, `IdVendor`, `CreatedAt`) VALUES
 --
 
 INSERT INTO `users` (`IdUser`, `Username`, `FirstName`, `LastName`, `BirthDate`, `Gender`, `Email`, `ICN`, `Telephone`, `Password`, `IdRole`, `FacebookId`, `GoogleId`, `RefreshToken`, `ProfilePicture`, `CreationDate`, `IsVerified`, `IsPremuim`, `PremiumExpiry`, `IdentityPicture`, `IsBusinessAccount`, `ICNBusiness`, `BusinessVerificationPicture`, `IdState`, `IdCountry`, `Location`, `LastConnection`, `Active`, `City`, `EmailConfirmed`) VALUES
-(1, '3isa', 'isa', 'lah', NULL, NULL, '3isa@gmail.com', NULL, '20764119', '$2y$12$rRVNl5dNUA5zKBPSz87ygOFSTva3520VqSAlVg4Xzn1B3ADGey8vK', NULL, NULL, NULL, NULL, NULL, '2026-07-11 11:04:03', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 0),
-(2, '3isa', 'isa', 'lah', NULL, NULL, 'aissa.lahiouel@polytechnicien.tn', NULL, '20764119', '$2y$12$w9oUyzFozqH0AZalJiEl0uBhTUlTHooPODCOd9NRKm9uhXQe4ikhu', NULL, NULL, NULL, NULL, NULL, '2026-07-11 11:07:11', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 0),
-(11, 'ahmed.benali', 'Ahmed', 'Ben Ali', '1985-02-11', 'Female', 'ahmed.benali@gmail.com', '10000001', '20000001', '$2y$12$hashedpassword1', 11, 'fb.com/ahmed.benali', 'ahmed.benali@gmail.com', 'rtok_000001abcdef', 'ahmed.benali_profile.jpg', '2026-07-01 09:00:00', 1, 0, '2027-12-31', 'ahmed.benali_id_card.jpg', 0, 'RC20001', 'ahmed.benali_business_doc.jpg', 11, 11, 'Tunis, Tunisia', '2026-07-02', 1, 'Tunis', 1),
-(12, 'sarra.trabelsi', 'Sarra', 'Trabelsi', '1990-03-12', 'Male', 'sarra.trabelsi@gmail.com', '10000002', '20000002', '$2y$12$hashedpassword2', 11, 'fb.com/sarra.trabelsi', 'sarra.trabelsi@gmail.com', 'rtok_000002abcdef', 'sarra.trabelsi_profile.jpg', '2026-07-02 09:00:00', 1, 0, '2027-12-31', 'sarra.trabelsi_id_card.jpg', 0, 'RC20002', 'sarra.trabelsi_business_doc.jpg', 12, 11, 'La Marsa, Tunisia', '2026-07-03', 1, 'La Marsa', 1),
-(13, 'ali.mansour', 'Ali', 'Mansour', '1988-04-13', 'Female', 'ali.mansour@gmail.com', '10000003', '20000003', '$2y$12$hashedpassword3', 12, 'fb.com/ali.mansour', 'ali.mansour@gmail.com', 'rtok_000003abcdef', 'ali.mansour_profile.jpg', '2026-07-03 09:00:00', 1, 1, '2027-12-31', 'ali.mansour_id_card.jpg', 1, 'RC20003', 'ali.mansour_business_doc.jpg', 13, 11, 'Sousse, Tunisia', '2026-07-04', 1, 'Sousse', 1),
-(14, 'meriem.khalil', 'Meriem', 'Khalil', '1993-05-14', 'Male', 'meriem.khalil@gmail.com', '10000004', '20000004', '$2y$12$hashedpassword4', 12, 'fb.com/meriem.khalil', 'meriem.khalil@gmail.com', 'rtok_000004abcdef', 'meriem.khalil_profile.jpg', '2026-07-04 09:00:00', 1, 1, '2027-12-31', 'meriem.khalil_id_card.jpg', 1, 'RC20004', 'meriem.khalil_business_doc.jpg', 14, 11, 'Monastir, Tunisia', '2026-07-05', 1, 'Monastir', 1),
-(15, 'youssef.kefi', 'Youssef', 'Kefi', '1987-06-15', 'Female', 'youssef.kefi@gmail.com', '10000005', '20000005', '$2y$12$hashedpassword5', 13, 'fb.com/youssef.kefi', 'youssef.kefi@gmail.com', 'rtok_000005abcdef', 'youssef.kefi_profile.jpg', '2026-07-05 09:00:00', 1, 0, '2027-12-31', 'youssef.kefi_id_card.jpg', 0, 'RC20005', 'youssef.kefi_business_doc.jpg', 15, 11, 'Sfax, Tunisia', '2026-07-06', 1, 'Sfax', 1),
-(16, 'nour.jaziri', 'Nour', 'Jaziri', '1995-07-16', 'Male', 'nour.jaziri@gmail.com', '10000006', '20000006', '$2y$12$hashedpassword6', 11, 'fb.com/nour.jaziri', 'nour.jaziri@gmail.com', 'rtok_000006abcdef', 'nour.jaziri_profile.jpg', '2026-07-06 09:00:00', 1, 0, '2027-12-31', 'nour.jaziri_id_card.jpg', 0, 'RC20006', 'nour.jaziri_business_doc.jpg', 16, 11, 'Ariana, Tunisia', '2026-07-07', 1, 'Ariana', 1),
-(17, 'lina.haddad', 'Lina', 'Haddad', '1991-08-17', 'Female', 'lina.haddad@gmail.com', '10000007', '20000007', '$2y$12$hashedpassword7', 11, 'fb.com/lina.haddad', 'lina.haddad@gmail.com', 'rtok_000007abcdef', 'lina.haddad_profile.jpg', '2026-07-07 09:00:00', 1, 0, '2027-12-31', 'lina.haddad_id_card.jpg', 0, 'RC20007', 'lina.haddad_business_doc.jpg', 17, 11, 'Nabeul, Tunisia', '2026-07-08', 1, 'Nabeul', 1),
-(18, 'hatem.ali', 'Hatem', 'Ali', '1989-09-18', 'Male', 'hatem.ali@gmail.com', '10000008', '20000008', '$2y$12$hashedpassword8', 12, 'fb.com/hatem.ali', 'hatem.ali@gmail.com', 'rtok_000008abcdef', 'hatem.ali_profile.jpg', '2026-07-08 09:00:00', 1, 1, '2027-12-31', 'hatem.ali_id_card.jpg', 1, 'RC20008', 'hatem.ali_business_doc.jpg', 18, 11, 'Bizerte, Tunisia', '2026-07-09', 1, 'Bizerte', 1),
-(19, 'amel.saidi', 'Amel', 'Saidi', '1996-01-19', 'Female', 'amel.saidi@gmail.com', '10000009', '20000009', '$2y$12$hashedpassword9', 11, 'fb.com/amel.saidi', 'amel.saidi@gmail.com', 'rtok_000009abcdef', 'amel.saidi_profile.jpg', '2026-07-09 09:00:00', 1, 0, '2027-12-31', 'amel.saidi_id_card.jpg', 0, 'RC20009', 'amel.saidi_business_doc.jpg', 19, 11, 'Hammamet, Tunisia', '2026-07-10', 1, 'Hammamet', 1),
-(20, 'omar.gharbi', 'Omar', 'Gharbi', '1984-02-20', 'Male', 'omar.gharbi@gmail.com', '10000010', '20000010', '$2y$12$hashedpassword10', 11, 'fb.com/omar.gharbi', 'omar.gharbi@gmail.com', 'rtok_000010abcdef', 'omar.gharbi_profile.jpg', '2026-07-10 09:00:00', 1, 0, '2027-12-31', 'omar.gharbi_id_card.jpg', 0, 'RC20010', 'omar.gharbi_business_doc.jpg', 20, 11, 'Djerba, Tunisia', '2026-07-11', 1, 'Djerba', 1),
-(21, 'salma.bouazizi', 'Salma', 'Bouazizi', '1992-03-21', 'Female', 'salma.bouazizi@gmail.com', '10000011', '20000011', '$2y$12$hashedpassword11', 11, 'fb.com/salma.bouazizi', 'salma.bouazizi@gmail.com', 'rtok_000011abcdef', 'salma.bouazizi_profile.jpg', '2026-07-11 09:00:00', 1, 0, '2027-12-31', 'salma.bouazizi_id_card.jpg', 0, 'RC20011', 'salma.bouazizi_business_doc.jpg', 21, 11, 'Gabes, Tunisia', '2026-07-12', 1, 'Gabes', 1),
-(22, 'karim.chaabane', 'Karim', 'Chaabane', '1986-04-22', 'Male', 'karim.chaabane@gmail.com', '10000012', '20000012', '$2y$12$hashedpassword12', 12, 'fb.com/karim.chaabane', 'karim.chaabane@gmail.com', 'rtok_000012abcdef', 'karim.chaabane_profile.jpg', '2026-07-12 09:00:00', 1, 1, '2027-12-31', 'karim.chaabane_id_card.jpg', 1, 'RC20012', 'karim.chaabane_business_doc.jpg', 22, 11, 'Kairouan, Tunisia', '2026-07-13', 1, 'Kairouan', 1),
-(23, 'ines.ferjani', 'Ines', 'Ferjani', '1994-05-23', 'Female', 'ines.ferjani@gmail.com', '10000013', '20000013', '$2y$12$hashedpassword13', 11, 'fb.com/ines.ferjani', 'ines.ferjani@gmail.com', 'rtok_000013abcdef', 'ines.ferjani_profile.jpg', '2026-07-13 09:00:00', 1, 0, '2027-12-31', 'ines.ferjani_id_card.jpg', 0, 'RC20013', 'ines.ferjani_business_doc.jpg', 23, 11, 'Gafsa, Tunisia', '2026-07-14', 1, 'Gafsa', 1),
-(24, 'walid.snoussi', 'Walid', 'Snoussi', '1990-06-24', 'Male', 'walid.snoussi@gmail.com', '10000014', '20000014', '$2y$12$hashedpassword14', 11, 'fb.com/walid.snoussi', 'walid.snoussi@gmail.com', 'rtok_000014abcdef', 'walid.snoussi_profile.jpg', '2026-07-14 09:00:00', 1, 0, '2027-12-31', 'walid.snoussi_id_card.jpg', 0, 'RC20014', 'walid.snoussi_business_doc.jpg', 24, 11, 'Mahdia, Tunisia', '2026-07-15', 1, 'Mahdia', 1),
-(25, 'rim.abidi', 'Rim', 'Abidi', '1997-07-25', 'Female', 'rim.abidi@gmail.com', '10000015', '20000015', '$2y$12$hashedpassword15', 11, 'fb.com/rim.abidi', 'rim.abidi@gmail.com', 'rtok_000015abcdef', 'rim.abidi_profile.jpg', '2026-07-15 09:00:00', 1, 0, '2027-12-31', 'rim.abidi_id_card.jpg', 0, 'RC20015', 'rim.abidi_business_doc.jpg', 25, 11, 'Kasserine, Tunisia', '2026-07-16', 1, 'Kasserine', 1),
-(26, 'mohamed.triki', 'Mohamed', 'Triki', '1983-08-26', 'Male', 'mohamed.triki@gmail.com', '10000016', '20000016', '$2y$12$hashedpassword16', 12, 'fb.com/mohamed.triki', 'mohamed.triki@gmail.com', 'rtok_000016abcdef', 'mohamed.triki_profile.jpg', '2026-07-16 09:00:00', 1, 1, '2027-12-31', 'mohamed.triki_id_card.jpg', 1, 'RC20016', 'mohamed.triki_business_doc.jpg', 26, 11, 'Sidi Bouzid, Tunisia', '2026-07-17', 1, 'Sidi Bouzid', 1),
-(27, 'yasmine.zouari', 'Yasmine', 'Zouari', '1998-09-27', 'Female', 'yasmine.zouari@gmail.com', '10000017', '20000017', '$2y$12$hashedpassword17', 11, 'fb.com/yasmine.zouari', 'yasmine.zouari@gmail.com', 'rtok_000017abcdef', 'yasmine.zouari_profile.jpg', '2026-07-17 09:00:00', 1, 0, '2027-12-31', 'yasmine.zouari_id_card.jpg', 0, 'RC20017', 'yasmine.zouari_business_doc.jpg', 27, 11, 'Tozeur, Tunisia', '2026-07-18', 1, 'Tozeur', 1),
-(28, 'anis.guesmi', 'Anis', 'Guesmi', '1985-01-10', 'Male', 'anis.guesmi@gmail.com', '10000018', '20000018', '$2y$12$hashedpassword18', 11, 'fb.com/anis.guesmi', 'anis.guesmi@gmail.com', 'rtok_000018abcdef', 'anis.guesmi_profile.jpg', '2026-07-18 09:00:00', 1, 0, '2027-12-31', 'anis.guesmi_id_card.jpg', 0, 'RC20018', 'anis.guesmi_business_doc.jpg', 28, 11, 'Zarzis, Tunisia', '2026-07-19', 1, 'Zarzis', 1),
-(29, 'farah.mejri', 'Farah', 'Mejri', '1991-02-11', 'Female', 'farah.mejri@gmail.com', '10000019', '20000019', '$2y$12$hashedpassword19', 11, 'fb.com/farah.mejri', 'farah.mejri@gmail.com', 'rtok_000019abcdef', 'farah.mejri_profile.jpg', '2026-07-19 09:00:00', 1, 0, '2027-12-31', 'farah.mejri_id_card.jpg', 0, 'RC20019', 'farah.mejri_business_doc.jpg', 29, 11, 'Ben Arous, Tunisia', '2026-07-20', 1, 'Ben Arous', 1),
-(30, 'bilel.rezgui', 'Bilel', 'Rezgui', '1988-03-12', 'Male', 'bilel.rezgui@gmail.com', '10000020', '20000020', '$2y$12$hashedpassword20', 12, 'fb.com/bilel.rezgui', 'bilel.rezgui@gmail.com', 'rtok_000020abcdef', 'bilel.rezgui_profile.jpg', '2026-07-20 09:00:00', 1, 1, '2027-12-31', 'bilel.rezgui_id_card.jpg', 1, 'RC20020', 'bilel.rezgui_business_doc.jpg', 30, 11, 'Manouba, Tunisia', '2026-07-21', 1, 'Manouba', 1);
+(1, 'tijara', 'TIJARA', 'Technologies', NULL, NULL, 'contact@tijara.tn', NULL, '73200000', '$2y$12$rRVNl5dNUA5zKBPSz87ygOFSTva3520VqSAlVg4Xzn1B3ADGey8vK', 2, NULL, NULL, NULL, NULL, '2026-07-11 11:04:03', NULL, NULL, NULL, NULL, 1, '1485926PAM000', NULL, NULL, NULL, 'Sousse, Tunisia', NULL, 1, 'Sousse', 0),
+(2, 'msk', 'MSK', 'Technologies', NULL, NULL, 'contact@msktechnologies.tn', NULL, '73400000', '$2y$12$w9oUyzFozqH0AZalJiEl0uBhTUlTHooPODCOd9NRKm9uhXQe4ikhu', 2, NULL, NULL, NULL, NULL, '2026-07-11 11:07:11', NULL, NULL, NULL, NULL, 1, '2587413PAM000', NULL, NULL, NULL, 'Sousse, Tunisia', NULL, 1, 'Sousse', 0),
+(11, 'ahmed.benali', 'Ahmed', 'Ben Ali', '1985-02-11', 'Female', 'ahmed.benali@gmail.com', '10000001', '20000001', '$2y$12$hashedpassword1', 1, 'fb.com/ahmed.benali', 'ahmed.benali@gmail.com', 'rtok_000001abcdef', 'ahmed.benali_profile.jpg', '2026-07-01 09:00:00', 1, 0, '2027-12-31', 'ahmed.benali_id_card.jpg', 0, 'RC20001', 'ahmed.benali_business_doc.jpg', 11, 11, 'Tunis, Tunisia', '2026-07-02', 1, 'Tunis', 1),
+(12, 'sarra.trabelsi', 'Sarra', 'Trabelsi', '1990-03-12', 'Male', 'sarra.trabelsi@gmail.com', '10000002', '20000002', '$2y$12$hashedpassword2', 1, 'fb.com/sarra.trabelsi', 'sarra.trabelsi@gmail.com', 'rtok_000002abcdef', 'sarra.trabelsi_profile.jpg', '2026-07-02 09:00:00', 1, 0, '2027-12-31', 'sarra.trabelsi_id_card.jpg', 0, 'RC20002', 'sarra.trabelsi_business_doc.jpg', 12, 11, 'La Marsa, Tunisia', '2026-07-03', 1, 'La Marsa', 1),
+(13, 'ali.mansour', 'Ali', 'Mansour', '1988-04-13', 'Female', 'ali.mansour@gmail.com', '10000003', '20000003', '$2y$12$hashedpassword3', 2, 'fb.com/ali.mansour', 'ali.mansour@gmail.com', 'rtok_000003abcdef', 'ali.mansour_profile.jpg', '2026-07-03 09:00:00', 1, 1, '2027-12-31', 'ali.mansour_id_card.jpg', 1, 'RC20003', 'ali.mansour_business_doc.jpg', 13, 11, 'Sousse, Tunisia', '2026-07-04', 1, 'Sousse', 1),
+(14, 'meriem.khalil', 'Meriem', 'Khalil', '1993-05-14', 'Male', 'meriem.khalil@gmail.com', '10000004', '20000004', '$2y$12$hashedpassword4', 2, 'fb.com/meriem.khalil', 'meriem.khalil@gmail.com', 'rtok_000004abcdef', 'meriem.khalil_profile.jpg', '2026-07-04 09:00:00', 1, 1, '2027-12-31', 'meriem.khalil_id_card.jpg', 1, 'RC20004', 'meriem.khalil_business_doc.jpg', 14, 11, 'Monastir, Tunisia', '2026-07-05', 1, 'Monastir', 1),
+(15, 'youssef.kefi', 'Youssef', 'Kefi', '1987-06-15', 'Female', 'youssef.kefi@gmail.com', '10000005', '20000005', '$2y$12$hashedpassword5', 1, 'fb.com/youssef.kefi', 'youssef.kefi@gmail.com', 'rtok_000005abcdef', 'youssef.kefi_profile.jpg', '2026-07-05 09:00:00', 1, 0, '2027-12-31', 'youssef.kefi_id_card.jpg', 0, 'RC20005', 'youssef.kefi_business_doc.jpg', 15, 11, 'Sfax, Tunisia', '2026-07-06', 1, 'Sfax', 1),
+(16, 'nour.jaziri', 'Nour', 'Jaziri', '1995-07-16', 'Male', 'nour.jaziri@gmail.com', '10000006', '20000006', '$2y$12$hashedpassword6', 1, 'fb.com/nour.jaziri', 'nour.jaziri@gmail.com', 'rtok_000006abcdef', 'nour.jaziri_profile.jpg', '2026-07-06 09:00:00', 1, 0, '2027-12-31', 'nour.jaziri_id_card.jpg', 0, 'RC20006', 'nour.jaziri_business_doc.jpg', 16, 11, 'Ariana, Tunisia', '2026-07-07', 1, 'Ariana', 1),
+(17, 'lina.haddad', 'Lina', 'Haddad', '1991-08-17', 'Female', 'lina.haddad@gmail.com', '10000007', '20000007', '$2y$12$hashedpassword7', 1, 'fb.com/lina.haddad', 'lina.haddad@gmail.com', 'rtok_000007abcdef', 'lina.haddad_profile.jpg', '2026-07-07 09:00:00', 1, 0, '2027-12-31', 'lina.haddad_id_card.jpg', 0, 'RC20007', 'lina.haddad_business_doc.jpg', 17, 11, 'Nabeul, Tunisia', '2026-07-08', 1, 'Nabeul', 1),
+(18, 'hatem.ali', 'Hatem', 'Ali', '1989-09-18', 'Male', 'hatem.ali@gmail.com', '10000008', '20000008', '$2y$12$hashedpassword8', 2, 'fb.com/hatem.ali', 'hatem.ali@gmail.com', 'rtok_000008abcdef', 'hatem.ali_profile.jpg', '2026-07-08 09:00:00', 1, 1, '2027-12-31', 'hatem.ali_id_card.jpg', 1, 'RC20008', 'hatem.ali_business_doc.jpg', 18, 11, 'Bizerte, Tunisia', '2026-07-09', 1, 'Bizerte', 1),
+(19, 'amel.saidi', 'Amel', 'Saidi', '1996-01-19', 'Female', 'amel.saidi@gmail.com', '10000009', '20000009', '$2y$12$hashedpassword9', 1, 'fb.com/amel.saidi', 'amel.saidi@gmail.com', 'rtok_000009abcdef', 'amel.saidi_profile.jpg', '2026-07-09 09:00:00', 1, 0, '2027-12-31', 'amel.saidi_id_card.jpg', 0, 'RC20009', 'amel.saidi_business_doc.jpg', 19, 11, 'Hammamet, Tunisia', '2026-07-10', 1, 'Hammamet', 1),
+(20, 'omar.gharbi', 'Omar', 'Gharbi', '1984-02-20', 'Male', 'omar.gharbi@gmail.com', '10000010', '20000010', '$2y$12$hashedpassword10', 1, 'fb.com/omar.gharbi', 'omar.gharbi@gmail.com', 'rtok_000010abcdef', 'omar.gharbi_profile.jpg', '2026-07-10 09:00:00', 1, 0, '2027-12-31', 'omar.gharbi_id_card.jpg', 0, 'RC20010', 'omar.gharbi_business_doc.jpg', 20, 11, 'Djerba, Tunisia', '2026-07-11', 1, 'Djerba', 1),
+(21, 'salma.bouazizi', 'Salma', 'Bouazizi', '1992-03-21', 'Female', 'salma.bouazizi@gmail.com', '10000011', '20000011', '$2y$12$hashedpassword11', 1, 'fb.com/salma.bouazizi', 'salma.bouazizi@gmail.com', 'rtok_000011abcdef', 'salma.bouazizi_profile.jpg', '2026-07-11 09:00:00', 1, 0, '2027-12-31', 'salma.bouazizi_id_card.jpg', 0, 'RC20011', 'salma.bouazizi_business_doc.jpg', 21, 11, 'Gabes, Tunisia', '2026-07-12', 1, 'Gabes', 1),
+(22, 'karim.chaabane', 'Karim', 'Chaabane', '1986-04-22', 'Male', 'karim.chaabane@gmail.com', '10000012', '20000012', '$2y$12$hashedpassword12', 2, 'fb.com/karim.chaabane', 'karim.chaabane@gmail.com', 'rtok_000012abcdef', 'karim.chaabane_profile.jpg', '2026-07-12 09:00:00', 1, 1, '2027-12-31', 'karim.chaabane_id_card.jpg', 1, 'RC20012', 'karim.chaabane_business_doc.jpg', 22, 11, 'Kairouan, Tunisia', '2026-07-13', 1, 'Kairouan', 1),
+(23, 'ines.ferjani', 'Ines', 'Ferjani', '1994-05-23', 'Female', 'ines.ferjani@gmail.com', '10000013', '20000013', '$2y$12$hashedpassword13', 1, 'fb.com/ines.ferjani', 'ines.ferjani@gmail.com', 'rtok_000013abcdef', 'ines.ferjani_profile.jpg', '2026-07-13 09:00:00', 1, 0, '2027-12-31', 'ines.ferjani_id_card.jpg', 0, 'RC20013', 'ines.ferjani_business_doc.jpg', 23, 11, 'Gafsa, Tunisia', '2026-07-14', 1, 'Gafsa', 1),
+(24, 'walid.snoussi', 'Walid', 'Snoussi', '1990-06-24', 'Male', 'walid.snoussi@gmail.com', '10000014', '20000014', '$2y$12$hashedpassword14', 1, 'fb.com/walid.snoussi', 'walid.snoussi@gmail.com', 'rtok_000014abcdef', 'walid.snoussi_profile.jpg', '2026-07-14 09:00:00', 1, 0, '2027-12-31', 'walid.snoussi_id_card.jpg', 0, 'RC20014', 'walid.snoussi_business_doc.jpg', 24, 11, 'Mahdia, Tunisia', '2026-07-15', 1, 'Mahdia', 1),
+(25, 'rim.abidi', 'Rim', 'Abidi', '1997-07-25', 'Female', 'rim.abidi@gmail.com', '10000015', '20000015', '$2y$12$hashedpassword15', 1, 'fb.com/rim.abidi', 'rim.abidi@gmail.com', 'rtok_000015abcdef', 'rim.abidi_profile.jpg', '2026-07-15 09:00:00', 1, 0, '2027-12-31', 'rim.abidi_id_card.jpg', 0, 'RC20015', 'rim.abidi_business_doc.jpg', 25, 11, 'Kasserine, Tunisia', '2026-07-16', 1, 'Kasserine', 1),
+(26, 'mohamed.triki', 'Mohamed', 'Triki', '1983-08-26', 'Male', 'mohamed.triki@gmail.com', '10000016', '20000016', '$2y$12$hashedpassword16', 2, 'fb.com/mohamed.triki', 'mohamed.triki@gmail.com', 'rtok_000016abcdef', 'mohamed.triki_profile.jpg', '2026-07-16 09:00:00', 1, 1, '2027-12-31', 'mohamed.triki_id_card.jpg', 1, 'RC20016', 'mohamed.triki_business_doc.jpg', 26, 11, 'Sidi Bouzid, Tunisia', '2026-07-17', 1, 'Sidi Bouzid', 1),
+(27, 'yasmine.zouari', 'Yasmine', 'Zouari', '1998-09-27', 'Female', 'yasmine.zouari@gmail.com', '10000017', '20000017', '$2y$12$hashedpassword17', 1, 'fb.com/yasmine.zouari', 'yasmine.zouari@gmail.com', 'rtok_000017abcdef', 'yasmine.zouari_profile.jpg', '2026-07-17 09:00:00', 1, 0, '2027-12-31', 'yasmine.zouari_id_card.jpg', 0, 'RC20017', 'yasmine.zouari_business_doc.jpg', 27, 11, 'Tozeur, Tunisia', '2026-07-18', 1, 'Tozeur', 1),
+(28, 'anis.guesmi', 'Anis', 'Guesmi', '1985-01-10', 'Male', 'anis.guesmi@gmail.com', '10000018', '20000018', '$2y$12$hashedpassword18', 1, 'fb.com/anis.guesmi', 'anis.guesmi@gmail.com', 'rtok_000018abcdef', 'anis.guesmi_profile.jpg', '2026-07-18 09:00:00', 1, 0, '2027-12-31', 'anis.guesmi_id_card.jpg', 0, 'RC20018', 'anis.guesmi_business_doc.jpg', 28, 11, 'Zarzis, Tunisia', '2026-07-19', 1, 'Zarzis', 1),
+(29, 'farah.mejri', 'Farah', 'Mejri', '1991-02-11', 'Female', 'farah.mejri@gmail.com', '10000019', '20000019', '$2y$12$hashedpassword19', 1, 'fb.com/farah.mejri', 'farah.mejri@gmail.com', 'rtok_000019abcdef', 'farah.mejri_profile.jpg', '2026-07-19 09:00:00', 1, 0, '2027-12-31', 'farah.mejri_id_card.jpg', 0, 'RC20019', 'farah.mejri_business_doc.jpg', 29, 11, 'Ben Arous, Tunisia', '2026-07-20', 1, 'Ben Arous', 1),
+(30, 'bilel.rezgui', 'Bilel', 'Rezgui', '1988-03-12', 'Male', 'bilel.rezgui@gmail.com', '10000020', '20000020', '$2y$12$hashedpassword20', 2, 'fb.com/bilel.rezgui', 'bilel.rezgui@gmail.com', 'rtok_000020abcdef', 'bilel.rezgui_profile.jpg', '2026-07-20 09:00:00', 1, 1, '2027-12-31', 'bilel.rezgui_id_card.jpg', 1, 'RC20020', 'bilel.rezgui_business_doc.jpg', 30, 11, 'Manouba, Tunisia', '2026-07-21', 1, 'Manouba', 1),
+(31, 'Issa Lahiouel', 'Issa Lahiouel', NULL, NULL, NULL, 'lahiouelmohamed7@gmail.com', NULL, NULL, '$2y$12$KXyxrAHFh5ow8hoR7/7NaOvjtyqqD/4R9jDgYT37GwrajS/et7h7y', NULL, '1824082555669686', NULL, NULL, 'https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1824082555669686&width=1920&ext=1787137679&hash=AfuCdNw6JfvciYuhNZSG3ppo', '2026-07-20 11:08:02', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 1),
+(32, 'aya', 'aya', 'attia', NULL, NULL, 'aya.attia@polytechnicien.tn', NULL, '20764119', '$2y$12$m75yUY8umRLq/mog854FZeYy.OnQ4ckeCE3Uo4sHqWLchgqqzd8bK', NULL, NULL, NULL, NULL, NULL, '2026-07-25 13:36:09', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 0),
+(33, 'admin', NULL, NULL, NULL, NULL, 'admin@tijara.com', NULL, NULL, '$2y$12$Bhz1ctaP/Fi8CVgnr3HAW.jIIuT4Jva3x62Emj1T4iuSEYgOiLhbq', 3, NULL, NULL, NULL, NULL, '2026-07-25 16:08:22', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 1),
+(34, 'aya', 'aya', 'attia', NULL, NULL, 'aya.attia@polytechnicien.com', NULL, '20764119', '$2y$12$rO4iggQ6EG/SXRRw2VIo6OTRke7/oqCOVDz4/ZRLJqz018uhTEEaW', 2, NULL, NULL, NULL, NULL, '2026-07-25 16:11:10', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 0);
 
 --
 -- Déchargement des données de la table `wallets`
@@ -1850,23 +1826,7 @@ JOIN Deals d
 ON p.IdDeal = d.IdDeal
 SET p.idUser = d.idUser;
 
-SET FOREIGN_KEY_CHECKS = 1;
 
-
-ALTER TABLE `roles` ADD UNIQUE KEY `uq_role_name` (`RoleUser`);
-
-UPDATE `users` SET `IdRole` = 1  WHERE `IdRole` = 11; -- User
-UPDATE `users` SET `IdRole` = 2  WHERE `IdRole` = 12; -- Entreprise
-UPDATE `users` SET `IdRole` = 3  WHERE `IdRole` = 13; -- Admin
-UPDATE `users` SET `IdRole` = 4  WHERE `IdRole` = 14; -- Moderator
-UPDATE `users` SET `IdRole` = 5  WHERE `IdRole` = 15; -- Vendor
-UPDATE `users` SET `IdRole` = 6  WHERE `IdRole` = 16; -- Customer
-UPDATE `users` SET `IdRole` = 7  WHERE `IdRole` = 29; -- Partner
-UPDATE `users` SET `IdRole` = 8  WHERE `IdRole` = 18; -- Manager
-UPDATE `users` SET `IdRole` = 9  WHERE `IdRole` = 17; -- Support
-UPDATE `users` SET `IdRole` = 10 WHERE `IdRole` = 30; -- Guest
-
-DELETE FROM `roles` WHERE `IdRole` IN (11, 12, 13, 14, 15, 16, 17, 18, 29, 30);
 
 COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;

@@ -49,4 +49,9 @@ class Orders extends Model
             'IdOrder'
         );
     }
+
+    public function payments()
+    {
+        return $this->hasMany(\App\Models\Payments::class, 'IdOrder', 'IdOrder');
+    }
 }
