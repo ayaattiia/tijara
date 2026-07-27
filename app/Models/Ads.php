@@ -29,6 +29,8 @@ class Ads extends Model
         'Email',
         'StartDate',
         'Active',
+        'ViewCount',
+        'LastViewedAt',
         'Type',
     ];
 

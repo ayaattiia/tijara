@@ -54,7 +54,7 @@ use App\Http\Controllers\Api\TransportsController;
 use App\Http\Controllers\Api\TypeCategoryController;
 use App\Http\Controllers\Api\UserFollowsController;
 use App\Http\Controllers\Api\UsersController;
-use App\Http\Controllers\Api\VendorsController;
+use App\Http\Controllers\Api\ViewController;
 use App\Http\Controllers\Api\WalletsController;
 use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
@@ -194,7 +194,25 @@ Route::post('/invoices/{number}/pay', [InvoicesController::class, 'pay']);
 Route::post('/invoices/{number}/cancel', [InvoicesController::class, 'cancel']);
 Route::get('/invoices/{id}/pdf', [InvoicesController::class, 'downloadPDF']);
 
+// Products
+Route::get(
+    '/products/{products}',
+    [ProductsController::class, 'show']
+);
 
+
+// Ads
+Route::get(
+    '/ads/{ads}',
+    [AdsController::class, 'show']
+);
+
+
+// User profiles
+Route::get(
+    '/users/{users}',
+    [UsersController::class, 'show']
+);
 /*
 |--------------------------------------------------------------------------
 | 2) ROUTES UTILISATEUR CONNECTE (auth:api) — cote "acheteur"
@@ -310,9 +328,29 @@ Route::middleware('auth:api')->group(function () {
     // Route::apiResource('transports', TransportsController::class)->only(['index', 'show']); // redundant, public already covers it
 
     // ... rest unchanged ...
+    Route::get(
+        '/views/recent',
+        [ViewController::class, 'recent']
+    );
+
+    Route::get(
+        '/views/product/{id}',
+        [ViewController::class, 'productStats']
+    );
 
 
+    Route::get(
+        '/views/ad/{id}',
+        [ViewController::class, 'adStats']
+    );
+
+    // View user profile (same public route but with token)
+    Route::get(
+        '/users/{users}',
+        [UsersController::class, 'show']
+    );
 });
+
 
 
 /*
@@ -351,8 +389,7 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
     Route::apiResource('boost-ads-packs', BoostAdsPacksController::class)->only(['index', 'show']);
     Route::apiResource('boosts', BoostsController::class)->only(['index', 'show']);
 
-    // ---- Espace vendeur : sa fiche entreprise + ses ventes ----
-    Route::apiResource('vendors', VendorsController::class);
+
     Route::get('/vendors/{id}/invoices', [InvoicesController::class, 'vendorInvoices']);
     Route::apiResource('invoices', InvoicesController::class)->only(['index', 'destroy']);
     // ---- Deliveries: vendor creates/manages colis for their own orders ----
@@ -364,6 +401,26 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
     // ---- Payments: vendor can check payment status on their own orders, but not complete/refund ----
     Route::apiResource('payments', PaymentsController::class)->only(['index', 'show']);
     Route::get('/payments/order/{idOrder}', [PaymentsController::class, 'orderPayments']);
+
+    // Vendor recently viewed
+    Route::get(
+        '/views/recent',
+        [ViewController::class, 'recent']
+    );
+
+
+    // Product view statistics
+    Route::get(
+        '/views/product/{id}',
+        [ViewController::class, 'productStats']
+    );
+
+
+    // Ad view statistics
+    Route::get(
+        '/views/ad/{id}',
+        [ViewController::class, 'adStats']
+    );
 });
 
 
@@ -435,4 +492,29 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::post('/payments/{id}/refund', [PaymentsController::class, 'refund']);
     Route::get('/payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
     Route::apiResource('payments', PaymentsController::class)->only(['destroy']);
+
+    // Any user's recent views (if needed)
+    Route::get(
+        '/views/recent',
+        [ViewController::class, 'recent']
+    );
+
+
+    // Product statistics
+    Route::get(
+        '/views/product/{id}',
+        [ViewController::class, 'productStats']
+    );
+
+
+    // Ad statistics
+    Route::get(
+        '/views/ad/{id}',
+        [ViewController::class, 'adStats']
+    );
+
+    Route::get(
+        '/users/{users}',
+        [UsersController::class, 'show']
+    );
 });

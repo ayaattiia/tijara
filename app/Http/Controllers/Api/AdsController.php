@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ViewController;
 use App\Models\Ads;
+use App\Models\Users;
 use App\Models\Features;
 use App\Models\FeaturesValues;
 use Illuminate\Http\Request;
@@ -27,6 +29,14 @@ class AdsController extends Controller
     // php.ini (upload_max_filesize, post_max_size) or PHP rejects the
     // file before this rule ever runs — see notes below.
     private const MAX_VIDEO_KB = 102400;
+
+    private ViewController $viewController;
+
+
+    public function __construct(ViewController $viewController)
+    {
+        $this->viewController = $viewController;
+    }
 
     /**
      * GET /api/ads?per_page=5&page=3&search=&PriceAd_max=&PriceAd_min=&IdCateg=&IdFV=
@@ -126,10 +136,38 @@ class AdsController extends Controller
 
     public function show($ads)
     {
-        $item = Ads::with(self::FEATURES_RELATIONS)->findOrFail($ads);
-        return response()->json($item);
-    }
+        $item = Ads::with(self::FEATURES_RELATIONS)
+            ->findOrFail($ads);
 
+
+
+        $user = auth('api')->user();
+
+
+
+        if ($user) {
+
+            $this->viewController->registerView(
+                $user,
+                'ad',
+                $item
+            );
+        } else {
+
+            // Guest view
+
+            $item->ViewCount = ($item->ViewCount ?? 0) + 1;
+            $item->LastViewedAt = now();
+            $item->save();
+        }
+
+
+
+        return response()->json([
+            'success' => true,
+            'data' => $item
+        ]);
+    }
     /**
      * Text/relation fields only. No file inputs here — PHP does not
      * populate $_FILES on PUT requests, so uploads must go through
@@ -207,27 +245,27 @@ class AdsController extends Controller
     }
 
     /**
- * PATCH /api/ads/{ads}/activate
- * Bascule ou force l'etat Active d'une annonce (reserve aux admins).
- */
-public function activate(Request $request, $ads)
-{
-    $item = Ads::findOrFail($ads);
+     * PATCH /api/ads/{ads}/activate
+     * Bascule ou force l'etat Active d'une annonce (reserve aux admins).
+     */
+    public function activate(Request $request, $ads)
+    {
+        $item = Ads::findOrFail($ads);
 
-    if ($request->has('Active')) {
-        $item->Active = (int) $request->input('Active');
-    } else {
-        // Pas de valeur envoyee -> on inverse l'etat actuel (toggle)
-        $item->Active = $item->Active ? 0 : 1;
+        if ($request->has('Active')) {
+            $item->Active = (int) $request->input('Active');
+        } else {
+            // Pas de valeur envoyee -> on inverse l'etat actuel (toggle)
+            $item->Active = $item->Active ? 0 : 1;
+        }
+
+        $item->save();
+
+        return response()->json([
+            'message' => 'Statut mis a jour avec succes.',
+            'data'    => $item->fresh(),
+        ]);
     }
-
-    $item->save();
-
-    return response()->json([
-        'message' => 'Statut mis a jour avec succes.',
-        'data'    => $item->fresh(),
-    ]);
-}
 
     public function destroy($ads)
     {

@@ -26,7 +26,9 @@ class Products extends Model
         'IdCateg',
         'IdUser',
         'IdCountrie',
-        'Active',
+        'ViewCount',
+        'LastViewedAt',
+        'Active'
     ];
 
     protected $hidden = ['IdCountrie'];

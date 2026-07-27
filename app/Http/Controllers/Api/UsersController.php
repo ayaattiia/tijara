@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ViewController;
 use App\Models\Users;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +14,14 @@ class UsersController extends Controller
     private const DEFAULT_PER_PAGE = 10;
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
+
+    private ViewController $viewController;
+
+
+    public function __construct(ViewController $viewController)
+    {
+        $this->viewController = $viewController;
+    }
 
     public function index(Request $request)
     {
@@ -41,10 +50,27 @@ class UsersController extends Controller
 
     public function show($users)
     {
-        $item = Users::findOrFail($users);
-        return response()->json($item);
-    }
+        try {
 
+            $profile = Users::findOrFail($users);
+
+
+            $visitor = auth('api')->user();
+
+
+            return response()->json([
+                "profile" => $profile,
+                "visitor" => $visitor
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                "error" => $e->getMessage(),
+                "line" => $e->getLine(),
+                "file" => $e->getFile()
+            ], 500);
+        }
+    }
     public function update(Request $request, $users)
     {
         $item = Users::findOrFail($users);

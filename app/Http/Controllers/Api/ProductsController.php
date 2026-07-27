@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ViewController;
 use App\Models\Products;
+use App\Models\Users;
 use App\Models\Features;
 use App\Models\FeaturesValues;
 use Illuminate\Http\Request;
@@ -25,6 +27,14 @@ class ProductsController extends Controller
     // Max video upload size in kilobytes (100 MB). Must also be raised in
     // php.ini (upload_max_filesize, post_max_size).
     private const MAX_VIDEO_KB = 102400;
+
+    private ViewController $viewController;
+
+
+    public function __construct(ViewController $viewController)
+    {
+        $this->viewController = $viewController;
+    }
 
     /**
      * GET /api/products?per_page=5&page=1&search=&IdFV=
@@ -121,10 +131,38 @@ class ProductsController extends Controller
 
     public function show($products)
     {
-        $item = Products::with(self::FEATURES_RELATIONS)->findOrFail($products);
-        return response()->json($item);
-    }
+        $item = Products::with(self::FEATURES_RELATIONS)
+            ->findOrFail($products);
 
+
+
+        $user = auth('api')->user();
+
+
+
+        if ($user) {
+
+            $this->viewController->registerView(
+                $user,
+                'product',
+                $item
+            );
+        } else {
+
+            // Count visitor views without history
+
+            $item->ViewCount = ($item->ViewCount ?? 0) + 1;
+            $item->LastViewedAt = now();
+            $item->save();
+        }
+
+
+
+        return response()->json([
+            'success' => true,
+            'data' => $item
+        ]);
+    }
     /**
      * Text/relation fields only. No file inputs — PHP does not populate
      * $_FILES on PUT requests, so uploads must go through addMedia() (POST).
@@ -419,110 +457,143 @@ class ProductsController extends Controller
 
 
     public function removePhoto(Request $request, $products)
-{
-    $request->validate([
-        'index' => 'required|integer|min:0',
-    ]);
+    {
+        $request->validate([
+            'index' => 'required|integer|min:0',
+        ]);
 
-    $item = Products::findOrFail($products);
+        $item = Products::findOrFail($products);
 
-    $photos = $this->normalizeMediaArray($item->getRawOriginal('ImageProduct'));
+        $photos = $this->normalizeMediaArray($item->getRawOriginal('ImageProduct'));
 
-    $index = (int) $request->query('index');
+        $index = (int) $request->query('index');
 
-    if (!isset($photos[$index])) {
+        if (!isset($photos[$index])) {
+            return response()->json([
+                'message' => 'Photo not found.'
+            ], 404);
+        }
+
+        $filename = $photos[$index];
+
+        $file = public_path(self::IMAGES_FOLDER . '/' . $filename);
+
+        if (file_exists($file)) {
+            unlink($file);
+        }
+
+        unset($photos[$index]);
+
+        $photos = array_values($photos);
+
+        $item->update([
+            'ImageProduct' => $photos
+        ]);
+
         return response()->json([
-            'message' => 'Photo not found.'
-        ], 404);
+            'message' => 'Photo removed successfully.',
+            'data' => $item->fresh(),
+            'image_urls' => $this->mediaUrls(
+                $item->fresh()->ImageProduct,
+                self::IMAGES_FOLDER
+            ),
+        ]);
     }
 
-    $filename = $photos[$index];
 
-    $file = public_path(self::IMAGES_FOLDER . '/' . $filename);
+    public function removeVideo(Request $request, $products)
+    {
+        $request->validate([
+            'index' => 'required|integer|min:0',
+        ]);
 
-    if (file_exists($file)) {
-        unlink($file);
-    }
+        $item = Products::findOrFail($products);
 
-    unset($photos[$index]);
+        $videos = $this->normalizeMediaArray($item->getRawOriginal('VideoProduct'));
 
-    $photos = array_values($photos);
+        $index = (int) $request->query('index');
 
-    $item->update([
-        'ImageProduct' => $photos
-    ]);
+        if (!isset($videos[$index])) {
+            return response()->json([
+                'message' => 'Video not found.'
+            ], 404);
+        }
 
-    return response()->json([
-        'message' => 'Photo removed successfully.',
-        'data' => $item->fresh(),
-        'image_urls' => $this->mediaUrls(
-            $item->fresh()->ImageProduct,
-            self::IMAGES_FOLDER
-        ),
-    ]);
-}
+        $filename = $videos[$index];
 
+        $file = public_path(self::VIDEOS_FOLDER . '/' . $filename);
 
-public function removeVideo(Request $request, $products)
-{
-    $request->validate([
-        'index' => 'required|integer|min:0',
-    ]);
+        if (file_exists($file)) {
+            unlink($file);
+        }
 
-    $item = Products::findOrFail($products);
+        unset($videos[$index]);
 
-    $videos = $this->normalizeMediaArray($item->getRawOriginal('VideoProduct'));
+        $videos = array_values($videos);
 
-    $index = (int) $request->query('index');
+        $item->update([
+            'VideoProduct' => $videos
+        ]);
 
-    if (!isset($videos[$index])) {
         return response()->json([
-            'message' => 'Video not found.'
-        ], 404);
+            'message' => 'Video removed successfully.',
+            'data' => $item->fresh(),
+            'video_urls' => $this->mediaUrls(
+                $item->fresh()->VideoProduct,
+                self::VIDEOS_FOLDER
+            ),
+        ]);
+    }
+    /**
+     * PATCH /api/products/{products}/activate   (admin only)
+     */
+    public function activate(Request $request, $products)
+    {
+        $request->validate(['Active' => 'required|boolean']);
+
+        $item = Products::findOrFail($products);
+        $item->Active = $request->boolean('Active');
+        $item->save();
+
+        return response()->json([
+            'message' => $item->Active
+                ? 'Product activated successfully.'
+                : 'Product deactivated successfully.'
+        ]);
     }
 
-    $filename = $videos[$index];
+    private function registerView(Users $user, string $type, Products $product): void
+    {
+        // Update product statistics
+        $product->increment('ViewCount');
 
-    $file = public_path(self::VIDEOS_FOLDER . '/' . $filename);
+        $product->LastViewedAt = now();
+        $product->save();
 
-    if (file_exists($file)) {
-        unlink($file);
+        // Recently viewed list
+        $recent = $user->RecentlyViewed ?? [];
+
+        if (!is_array($recent)) {
+            $recent = json_decode($recent, true) ?? [];
+        }
+
+        // Remove duplicate
+        $recent = array_values(array_filter($recent, function ($v) use ($product) {
+            return !(
+                $v['type'] === 'product' &&
+                $v['id'] == $product->IdProduct
+            );
+        }));
+
+        array_unshift($recent, [
+            'type' => 'product',
+            'id'   => $product->IdProduct,
+            'at'   => now()->toDateTimeString(),
+        ]);
+
+        $recent = array_slice($recent, 0, 20);
+
+        $user->RecentlyViewed = $recent;
+        $user->save();
     }
-
-    unset($videos[$index]);
-
-    $videos = array_values($videos);
-
-    $item->update([
-        'VideoProduct' => $videos
-    ]);
-
-    return response()->json([
-        'message' => 'Video removed successfully.',
-        'data' => $item->fresh(),
-        'video_urls' => $this->mediaUrls(
-            $item->fresh()->VideoProduct,
-            self::VIDEOS_FOLDER
-        ),
-    ]);
-}
-/**
- * PATCH /api/products/{products}/activate   (admin only)
- */
-public function activate(Request $request, $products)
-{
-    $request->validate(['Active' => 'required|boolean']);
-
-    $item = Products::findOrFail($products);
-    $item->Active = $request->boolean('Active');
-    $item->save();
-
-    return response()->json([
-        'message' => $item->Active
-            ? 'Product activated successfully.'
-            : 'Product deactivated successfully.'
-    ]);
-}
-
-
 }

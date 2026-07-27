@@ -47,10 +47,17 @@ class Users extends Authenticatable
         'Location',
         'LastConnection',
         'Active',
-        'City',
+        'City',,
+        'LastViewedAt',
+        'ViewCount',
+        'RecentlyViewed',
         'EmailConfirmed'
     ];
 
+    protected $casts = [
+        'RecentlyViewed' => 'array',
+        'LastViewedAt' => 'datetime'
+    ];
     protected $hidden = [
         'Password',
         'RefreshToken',
