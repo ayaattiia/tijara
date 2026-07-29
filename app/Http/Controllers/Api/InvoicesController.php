@@ -20,13 +20,15 @@ class InvoicesController extends Controller
         $query = Invoices::with([
             'user',
             'vendor',
-            'order'
+            'order',
+            'order.details.product'
         ]);
 
         /*
     |--------------------------------------------------------------------------
     | Search
-    |--------------------------------------------------------------------------
+    |----------------------------------------------------------
+    ----------------
     */
 
         if ($request->filled('search')) {
@@ -362,7 +364,7 @@ class InvoicesController extends Controller
                 'message' => 'Invoice generated successfully.',
 
                 'data' => $invoice->load([
-                    'order',
+                    'order.details.product',
                     'user',
                     'vendor'
                 ])
