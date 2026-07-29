@@ -59,6 +59,7 @@ use App\Http\Controllers\Api\WalletsController;
 use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
+use App\Http\Controllers\VitrineController;
 
 
 /*
@@ -78,6 +79,13 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::get('/auth/facebook', [AuthController::class, 'redirectToFacebook']);
 Route::get('/auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
+
+
+
+// ---- Vitrine publique  ----
+Route::get('/vitrine', [VitrineController::class, 'index']);
+
+
 
 // ---- Catalogue produits (lecture seule) ----
 Route::get('/products', [ProductsController::class, 'index']);

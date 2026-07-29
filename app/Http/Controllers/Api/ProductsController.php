@@ -562,38 +562,38 @@ class ProductsController extends Controller
         ]);
     }
 
-    private function registerView(Users $user, string $type, Products $product): void
-    {
-        // Update product statistics
-        $product->increment('ViewCount');
+    // private function registerView(Users $user, string $type, Products $product): void
+    // {
+    //     // Update product statistics
+    //     $product->increment('ViewCount');
 
-        $product->LastViewedAt = now();
-        $product->save();
+    //     $product->LastViewedAt = now();
+    //     $product->save();
 
-        // Recently viewed list
-        $recent = $user->RecentlyViewed ?? [];
+    //     // Recently viewed list
+    //     $recent = $user->RecentlyViewed ?? [];
 
-        if (!is_array($recent)) {
-            $recent = json_decode($recent, true) ?? [];
-        }
+    //     if (!is_array($recent)) {
+    //         $recent = json_decode($recent, true) ?? [];
+    //     }
 
-        // Remove duplicate
-        $recent = array_values(array_filter($recent, function ($v) use ($product) {
-            return !(
-                $v['type'] === 'product' &&
-                $v['id'] == $product->IdProduct
-            );
-        }));
+    //     // Remove duplicate
+    //     $recent = array_values(array_filter($recent, function ($v) use ($product) {
+    //         return !(
+    //             $v['type'] === 'product' &&
+    //             $v['id'] == $product->IdProduct
+    //         );
+    //     }));
 
-        array_unshift($recent, [
-            'type' => 'product',
-            'id'   => $product->IdProduct,
-            'at'   => now()->toDateTimeString(),
-        ]);
+    //     array_unshift($recent, [
+    //         'type' => 'product',
+    //         'id'   => $product->IdProduct,
+    //         'at'   => now()->toDateTimeString(),
+    //     ]);
 
-        $recent = array_slice($recent, 0, 20);
+    //     $recent = array_slice($recent, 0, 20);
 
-        $user->RecentlyViewed = $recent;
-        $user->save();
-    }
+    //     $user->RecentlyViewed = $recent;
+    //     $user->save();
+    // }
 }

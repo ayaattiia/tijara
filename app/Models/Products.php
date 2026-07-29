@@ -28,7 +28,8 @@ class Products extends Model
         'IdCountrie',
         'ViewCount',
         'LastViewedAt',
-        'Active'
+        'Active',
+        'IdBrand'
     ];
 
     protected $hidden = ['IdCountrie'];
@@ -101,4 +102,13 @@ class Products extends Model
             'IdFV'
         )->withPivot('IdProductFeatureValue');
     }
+
+    public function brand()
+{
+    return $this->belongsTo(
+        \App\Models\Brands::class,
+        'IdBrand',
+        'IdBrand'
+    );
+}
 }
