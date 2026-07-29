@@ -12,22 +12,26 @@ class VitrineController extends Controller
 {
     public function index()
     {
-        $latestAds = Ads::orderBy('IdAd', 'desc')->take(8)->get();
+        $latestAds = Ads::orderBy('IdAd', 'desc')
+            // ->take(8)
+            ->get();
         $latestProducts = Products::with(['cateorie','brand','user'])
             ->orderBy('IdProduct', 'desc')
-            ->take(8)
+            // ->take(8)
             ->get();
 
         $categories = Categories::where('Active', 1)
             ->orderBy('IdCateg', 'desc')
             ->get();
 
-        $brands = Brands::orderBy('IdBrand', 'desc')->take(8)
+            
+        $brands = Brands::orderBy('IdBrand', 'desc')
+        // ->take(8)
             ->get();
         $featuredProducts = Products::with(['cateorie', 'brand'])
             ->where('Active', 1)
             ->inRandomOrder()
-            ->take(8)
+            // ->take(8)
             ->get();
 
 

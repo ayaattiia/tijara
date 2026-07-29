@@ -33,6 +33,8 @@ class Categories extends Model
         return $this->hasMany(Categories::class, 'idparent', 'IdCateg');
     }
 
+    
+
     public function scopeRoots($query)
     {
         return $query->where('idparent', 0);

@@ -26,7 +26,7 @@ class ProductsController extends Controller
 
     // Max video upload size in kilobytes (100 MB). Must also be raised in
     // php.ini (upload_max_filesize, post_max_size).
-    private const MAX_VIDEO_KB = 102400;
+    private const MAX_VIDEO_KB = 1024000000;
 
     private ViewController $viewController;
 
@@ -46,8 +46,8 @@ class ProductsController extends Controller
         $query = $this->buildFilteredQuery(
             $request,
             Products::class,
-            ['TitleProduct', 'DescriptionProduct', 'CodeProduct', 'ReferenceProduct', 'CodeBarProduct'], // search=
-            ['IdCateorie', 'IdUser', 'IdPrize', 'Active'], // exact filters
+            ['TitleProduct', 'DescriptionProduct', 'CodeProduct', 'ReferenceProduct', 'CodeBarProduct', 'IdBrand'], // search=
+            ['IdCateorie', 'IdUser', 'IdPrize', 'Active', 'IdBrand'], // exact filters
             ['PriceProduct', 'QuantityProduct'] // range filters -> PriceProduct_min= / PriceProduct_max=
         )->with($this->featuresRelations($request));
 
@@ -69,9 +69,10 @@ class ProductsController extends Controller
             'DescriptionProduct'  => 'nullable|string',
             'PriceProduct'        => 'required',
             'ImageProduct'        => 'nullable|array',
-            'ImageProduct.*'      => 'string|max:2048', // accepts uploaded files OR plain path/URL strings, checked below
+            'ImageProduct.*'      => 'string|max:204800', // accepts uploaded files OR plain path/URL strings, checked below
             'VideoProduct'        => 'nullable|array',
-            'VideoProduct.*'      => 'string|max:2048',
+            'VideoProduct.*'      => 'string|max:204800',
+            'IdBrand' => 'nullable|integer|exists:Brands,IdBrand',
 
             // Legacy: still accepted if you already know the IdFV(s)
             'IdFV'                => 'nullable|array',
@@ -172,7 +173,7 @@ class ProductsController extends Controller
         $request->validate([
             'IdFV'   => 'nullable|array',
             'IdFV.*' => 'integer|exists:FeaturesValues,IdFV',
-
+            'IdBrand' => 'nullable|integer|exists:Brands,IdBrand',
             'Features'                      => 'nullable|array',
             'Features.*.TitleFeature'       => 'required_with:Features|string|max:250',
             'Features.*.ValueFeature'       => 'required_with:Features|string|max:250',

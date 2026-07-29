@@ -82,6 +82,14 @@ class Products extends Model
     {
         return $this->belongsTo(\App\Models\Categories::class, 'IdCateorie', 'IdCateg');
     }
+    public function categ()
+    {
+        return $this->belongsTo(
+            \App\Models\Categories::class,
+            'IdCateg',
+            'IdCateg'
+        );
+    }
 
     public function user()
     {
