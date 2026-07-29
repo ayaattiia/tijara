@@ -284,79 +284,15 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
 /*
 |--------------------------------------------------------------------------
 | 4) ROUTES ADMIN UNIQUEMENT — auth:api + middleware 'admin' (IdRole = 3)
-|    Acces global / transverse a toute la plateforme.
+|    Perimetre volontairement restreint : l'admin ne gere ICI QUE les
+|    utilisateurs (CRUD complet). Toute la moderation/config globale
+|    (roles, permissions, categories, coupons, paiements, etc.) qui
+|    existait auparavant a ete retiree de cette section.
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth:api', 'admin'])->group(function () {
 
-    // ---- Activation / moderation ----
-    Route::patch('/prizes/{prizes}/activate', [PrizesController::class, 'activate']);
-    Route::patch('/ads/{ads}/activate', [AdsController::class, 'activate']);
-    Route::patch('/products/{products}/activate', [ProductsController::class, 'activate']);
-
-    // ---- Gestion des roles et permissions ----
-    Route::apiResource('roles', RolesController::class);
-    Route::apiResource('permissions', PermissionsController::class);
-    Route::apiResource('list-permissions', ListPermissionsController::class);
-
-    // ---- Gestion globale des comptes (au-dela de son propre profil) ----
-    Route::apiResource('users', UsersController::class)->only(['index', 'destroy']);
-    Route::apiResource('wallets', WalletsController::class)->only(['index', 'update', 'destroy']);
-    Route::apiResource('email-tokens', EmailTokensController::class);
-
-    // ---- Vision globale des commandes / paiements / factures ----
-    Route::apiResource('orders', OrdersController::class)->only(['index', 'destroy']);
-    Route::get('/payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
-    Route::post('/payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
-    Route::post('/payments/{id}/refund', [PaymentsController::class, 'refund']);
-    Route::get('/payments/order/{idOrder}/total', [PaymentsController::class, 'totalPaid']);
-    Route::apiResource('payments', PaymentsController::class)->only(['index', 'update', 'destroy']);
-    Route::apiResource('invoices', InvoicesController::class)->only(['index', 'update', 'destroy']);
-    Route::apiResource('deliveries', DeliveriesController::class)->only(['index', 'destroy']);
-    Route::apiResource('transports', TransportsController::class)->except(['index', 'show']);
-    Route::get('/transports/date-range', [TransportsController::class, 'dateRange']);
-    Route::get('/transports/{id}/stats', [TransportsController::class, 'stats']);
-    Route::post('/transports/{id}/toggle-active', [TransportsController::class, 'toggleActive']);
-
-    // ---- Configuration de la plateforme ----
-    Route::apiResource('admin-settings', AdminSettingsController::class);
-    Route::apiResource('type-category', TypeCategoryController::class)->except(['index', 'show']);
-    Route::apiResource('labels', LabelsController::class)->except(['index', 'show']);
-    Route::apiResource('features', FeaturesController::class)->except(['index', 'show']);
-    Route::apiResource('features-values', FeaturesValuesController::class)->except(['index', 'show']);
-    Route::apiResource('feature-categories', FeatureCategoriesController::class)->except(['index', 'show']);
-    Route::apiResource('brands', BrandsController::class)->except(['index', 'show']);
-    Route::apiResource('categories', CategoriesController::class)->except(['index', 'show']);
-    Route::apiResource('cities', CitiesController::class)->except(['index', 'show']);
-    Route::apiResource('countries', CountriesController::class)->except(['index', 'show']);
-    Route::apiResource('countries-full', CountriesFullController::class)->except(['index', 'show']);
-    Route::apiResource('states', StatesController::class)->except(['index', 'show']);
-    Route::apiResource('causes', CausesController::class)->except(['index', 'show']);
-    Route::apiResource('causes-reports', CausesReportsController::class);
-
-    // ---- Offres commerciales de la plateforme (packs, coupons, boosts, prizes) ----
-    // 'show' reste public (Section 1) ; l'admin gere index/store/update/destroy
-    Route::apiResource('coupons', CouponsController::class)->except(['show']);
-    Route::apiResource('point-packets', PointPacketsController::class)->except(['index', 'show']);
-    Route::apiResource('boost-ads-packs', BoostAdsPacksController::class)->except(['index', 'show']);
-    Route::apiResource('boosts', BoostsController::class)->only(['index']);
-    Route::apiResource('prizes', PrizesController::class)->except(['index', 'show']);
-    Route::apiResource('winners', WinnersController::class);
-
-    // ---- Vendeurs (moderation globale) ----
-    Route::apiResource('vendors', VendorsController::class)->only(['destroy']);
-
-    // ---- Avis / notes : moderation (suppression globale) ----
-    Route::apiResource('reviews', ReviewsController::class)->only(['destroy']);
-    Route::apiResource('ratings', RatingsController::class)->only(['destroy']);
-
-    // ---- Supervision / logs ----
-    Route::apiResource('sms-logs', SmsLogsController::class);
-    Route::apiResource('errors', ErrorsController::class);
-    Route::apiResource('reports', ReportsController::class)->only(['index', 'destroy']);
-
-    // ---- Statistiques globales ----
-    Route::get('/invoices/statistics', [InvoicesController::class, 'statistics']);
-    Route::get('/invoices/revenue/monthly', [InvoicesController::class, 'monthlyRevenue']);
+    // ---- Gestion complete des utilisateurs ----
+    Route::apiResource('users', UsersController::class);
 });
