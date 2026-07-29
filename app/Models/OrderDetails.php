@@ -23,7 +23,7 @@ class OrderDetails extends Model
         'FirstName',
         'LastName',
         'Quantity',
-        'TotalAmount',
+        'UnitPrice',
         'DateTimeCommand',
         'Active'
     ];

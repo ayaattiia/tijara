@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\OrderDetails;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class OrderDetailsController extends Controller
 {
@@ -22,7 +23,7 @@ class OrderDetailsController extends Controller
             OrderDetails::class,
             ['ZipCode', 'Address', 'Email', 'Telephone', 'FirstName', 'LastName'],
             ['IdUser', 'IdProduct', 'IdState', 'IdCountry', 'IdOrder', 'Active'],
-            ['Quantity', 'TotalAmount', 'DateTimeCommand']
+            ['Quantity', 'UnitPrice', 'DateTimeCommand']
         );
 
         return response()->json($query->paginate($perPage));
@@ -30,9 +31,50 @@ class OrderDetailsController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->all();
-        $item = OrderDetails::create($data);
-        return response()->json($item, 201);
+        $validator = Validator::make($request->all(), [
+
+            'IdOrder' => 'required|exists:Orders,IdOrder',
+
+            'IdProduct' => 'required|exists:Products,IdProduct',
+
+            'Quantity' => 'required|integer|min:1',
+
+            'UnitPrice' => 'nullable|numeric|min:0',
+
+            'IdUser' => 'nullable|exists:Users,IdUser',
+
+            'IdState' => 'nullable|exists:States,IdState',
+
+            'IdCountry' => 'nullable|exists:Countries,IdCountry',
+
+            'ZipCode' => 'nullable|string|max:20',
+
+            'Address' => 'nullable|string|max:255',
+
+            'Email' => 'nullable|email|max:255',
+
+            'Telephone' => 'nullable|string|max:20',
+
+            'FirstName' => 'nullable|string|max:100',
+
+            'LastName' => 'nullable|string|max:100',
+
+        ]);
+
+        if ($validator->fails()) {
+
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $item = OrderDetails::create($validator->validated());
+
+        return response()->json([
+            'success' => true,
+            'data' => $item->load('product')
+        ], 201);
     }
 
     public function show($order_details)
@@ -44,8 +86,51 @@ class OrderDetailsController extends Controller
     public function update(Request $request, $order_details)
     {
         $item = OrderDetails::findOrFail($order_details);
-        $item->update($request->all());
-        return response()->json($item);
+
+        $validator = Validator::make($request->all(), [
+
+            'IdOrder' => 'sometimes|required|exists:Orders,IdOrder',
+
+            'IdProduct' => 'sometimes|required|exists:Products,IdProduct',
+
+            'Quantity' => 'sometimes|required|integer|min:1',
+
+            'UnitPrice' => 'nullable|numeric|min:0',
+
+            'IdUser' => 'nullable|exists:Users,IdUser',
+
+            'IdState' => 'nullable|exists:States,IdState',
+
+            'IdCountry' => 'nullable|exists:Countries,IdCountry',
+
+            'ZipCode' => 'nullable|string|max:20',
+
+            'Address' => 'nullable|string|max:255',
+
+            'Email' => 'nullable|email|max:255',
+
+            'Telephone' => 'nullable|string|max:20',
+
+            'FirstName' => 'nullable|string|max:100',
+
+            'LastName' => 'nullable|string|max:100',
+
+        ]);
+
+        if ($validator->fails()) {
+
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $item->update($validator->validated());
+
+        return response()->json([
+            'success' => true,
+            'data' => $item->load('product')
+        ]);
     }
 
     public function destroy($order_details)

@@ -207,8 +207,8 @@ Route::middleware('auth:api')->group(function () {
     // NB: le controleur doit filtrer index/show sur l'utilisateur connecte
     // (sauf pour l'admin, qui a son propre acces global en Section 4).
     Route::apiResource('orders', OrdersController::class);
-    Route::apiResource('order-details', OrderDetailsController::class);
     Route::get('/order-details/total/{idOrder}', [OrderDetailsController::class, 'total']);
+    Route::apiResource('order-details', OrderDetailsController::class);
     Route::apiResource('payments', PaymentsController::class)->only(['index', 'show', 'store']);
     Route::apiResource('deliveries', DeliveriesController::class)->only(['index', 'show']);
     Route::apiResource('invoices', InvoicesController::class)->only(['index', 'show', 'store']);
