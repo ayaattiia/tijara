@@ -60,6 +60,7 @@ use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
 use App\Http\Controllers\VitrineController;
+use App\Http\Controllers\Api\ViewController;
 
 
 /*
@@ -146,6 +147,9 @@ Route::get('/invoices/{number}/pdf', [InvoicesController::class, 'downloadPDF'])
 Route::post('/invoices/{number}/pay', [InvoicesController::class, 'pay']);
 Route::post('/invoices/{number}/cancel', [InvoicesController::class, 'cancel']);
 
+Route::get('/products/{id}/stats', [ViewController::class, 'productStats']);
+Route::get('/ads/{id}/stats', [ViewController::class, 'adStats']);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -221,7 +225,11 @@ Route::middleware('auth:api')->group(function () {
 
     // ---- Signalements (creer / consulter les siens) ----
     Route::apiResource('reports', ReportsController::class)->only(['index', 'show', 'store']);
+
+    Route::get('/recently-viewed', [ViewController::class, 'recent']);
+    Route::get('/users/{id}/stats', [ViewController::class, 'userStats']);
 });
+
 
 
 /*

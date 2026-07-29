@@ -13,6 +13,8 @@ class Users extends Authenticatable
     protected $primaryKey = 'IdUser';
     public $timestamps = false;
 
+    protected $keyType = 'int';
+
     // Passport / auth guard needs to know which column holds the password.
     public function getAuthPassword()
     {
