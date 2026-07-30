@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
 
 class Users extends Authenticatable
 {
@@ -69,6 +71,7 @@ class Users extends Authenticatable
     {
         return $this->belongsTo(\App\Models\Roles::class, 'IdRole', 'IdRole');
     }
+    
 
     public function state()
     {
@@ -88,4 +91,14 @@ class Users extends Authenticatable
             'IdUser'
         );
     }
+
+public function conversations(): BelongsToMany
+{
+    return $this->belongsToMany(
+        Conversation::class,
+        'conversation_user',
+        'idUser',               // clé de CE modèle (Users) dans la pivot
+        'conversation_id'      // clé de l'AUTRE modèle (Conversation) dans la pivot
+    );
+}
 }

@@ -13,8 +13,9 @@ use App\Http\Controllers\Api\BoostsController;
 use App\Http\Controllers\Api\BrandsController;
 use App\Http\Controllers\Api\CategoriesController;
 use App\Http\Controllers\Api\CausesReportsController;
-use App\Http\Controllers\Api\ChatMessagesController;
-use App\Http\Controllers\Api\ChatsController;
+// use App\Http\Controllers\Api\ChatMessagesController;
+// use App\Http\Controllers\Api\ChatsController;
+// use App\Http\Controllers\Api\MessagesController;
 use App\Http\Controllers\Api\CitiesController;
 use App\Http\Controllers\Api\CausesController;
 use App\Http\Controllers\Api\CommentsController;
@@ -33,7 +34,6 @@ use App\Http\Controllers\Api\InvoicesController;
 use App\Http\Controllers\Api\LabelsController;
 use App\Http\Controllers\Api\LikesController;
 use App\Http\Controllers\Api\ListPermissionsController;
-use App\Http\Controllers\Api\MessagesController;
 use App\Http\Controllers\Api\NotificationsController;
 use App\Http\Controllers\Api\OrderDetailsController;
 use App\Http\Controllers\Api\OrdersController;
@@ -61,6 +61,11 @@ use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
 use App\Http\Controllers\VitrineController;
 use App\Http\Controllers\Api\ViewController;
+use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\ConversationController;
+
+
+
 
 
 /*
@@ -189,18 +194,19 @@ Route::middleware('auth:api')->group(function () {
     // index/show publics (Section 1) ; ici on n'ouvre que la creation/edition/suppression
     Route::apiResource('reviews', ReviewsController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('ratings', RatingsController::class)->only(['store', 'update', 'destroy']);
-    Route::apiResource('messages', MessagesController::class);
+    
+    // Route::apiResource('messages', MessagesController::class);
 
-    Route::post('/chats/start', [ChatsController::class, 'start']);
-    Route::get('/chats', [ChatsController::class, 'index']);
-    Route::get('/chats/{chats}', [ChatsController::class, 'show']);
-    Route::put('/chats/{chats}', [ChatsController::class, 'update']);
-    Route::delete('/chats/{chats}', [ChatsController::class, 'destroy']);
+    // Route::post('/chats/start', [ChatsController::class, 'start']);
+    // Route::get('/chats', [ChatsController::class, 'index']);
+    // Route::get('/chats/{chats}', [ChatsController::class, 'show']);
+    // Route::put('/chats/{chats}', [ChatsController::class, 'update']);
+    // Route::delete('/chats/{chats}', [ChatsController::class, 'destroy']);
 
-    Route::get('/chats/{idChat}/messages', [ChatMessagesController::class, 'index']);
-    Route::post('/chats/{idChat}/messages', [ChatMessagesController::class, 'store']);
-    Route::get('/chat-messages/{chat_messages}', [ChatMessagesController::class, 'show']);
-    Route::delete('/chat-messages/{chat_messages}', [ChatMessagesController::class, 'destroy']);
+    // Route::get('/chats/{idChat}/messages', [ChatMessagesController::class, 'index']);
+    // Route::post('/chats/{idChat}/messages', [ChatMessagesController::class, 'store']);
+    // Route::get('/chat-messages/{chat_messages}', [ChatMessagesController::class, 'show']);
+    // Route::delete('/chat-messages/{chat_messages}', [ChatMessagesController::class, 'destroy']);
 
     Route::apiResource('notifications', NotificationsController::class);
     Route::apiResource('user-follows', UserFollowsController::class);
@@ -228,7 +234,19 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/recently-viewed', [ViewController::class, 'recent']);
     Route::get('/users/{id}/stats', [ViewController::class, 'userStats']);
+
+
+    // ---- Conversations / messages (cote acheteur) ----
+    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
+    Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+
+    Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+
+
 });
+
+
 
 
 

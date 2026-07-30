@@ -2,46 +2,32 @@
 
 namespace App\Events;
 
-use App\Models\ChatMessages;
+use App\Models\Message;
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class MessageSent implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use InteractsWithSockets;
 
-    public ChatMessages $message;
-
-    public function __construct(ChatMessages $message)
-    {
-        $this->message = $message;
-    }
+    public function __construct(public Message $message) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('chat.' . $this->message->IdChat),
+            new PrivateChannel('conversation.' . $this->message->conversation_id),
         ];
-    }
-
-    public function broadcastAs(): string
-    {
-        return 'message.sent';
     }
 
     public function broadcastWith(): array
     {
         return [
-            'IdChatMessage' => $this->message->IdChatMessage,
-            'IdChat'        => $this->message->IdChat,
-            'IdUserSender'  => $this->message->IdUserSender,
-            'Message'       => $this->message->Message,
-            'CreateDate'    => $this->message->CreateDate,
+            'id' => $this->message->id,
+            'body' => $this->message->body,
+            'user' => $this->message->user->only(['id', 'name']),
+            'created_at' => $this->message->created_at,
         ];
     }
 }
