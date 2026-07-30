@@ -298,7 +298,6 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
 
 Route::middleware(['auth:api', 'admin'])->group(function () {
 
-<<<<<<< HEAD
     // ---- Activation / moderation ----
     Route::patch('/prizes/{prizes}/activate', [PrizesController::class, 'activate']);
     Route::patch('/ads/{ads}/activate', [AdsController::class, 'activate']);
@@ -368,8 +367,7 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     // ---- Statistiques globales ----
     Route::get('/invoices/statistics', [InvoicesController::class, 'statistics']);
     Route::get('/invoices/revenue/monthly', [InvoicesController::class, 'monthlyRevenue']);
-=======
+
     // ---- Gestion complete des utilisateurs ----
     Route::apiResource('users', UsersController::class);
->>>>>>> a19e86f58b49e0945bfb30b07a65d0fb0286bc61
 });
