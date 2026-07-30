@@ -106,6 +106,8 @@ class ViewController extends Controller
 
 
                 $item = Products::find($view['id']);
+            } elseif (($view['type'] ?? '') === 'user') {
+                $item = Users::find($view['id']);
             } else {
 
 
@@ -185,6 +187,16 @@ class ViewController extends Controller
 
             'LastViewedAt' => $ad->LastViewedAt
 
+        ]);
+    }
+
+    public function userStats($id)
+    {
+        $user = Users::findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'ViewCount' => $user->ViewCount,
+            'LastViewedAt' => $user->LastViewedAt
         ]);
     }
 }

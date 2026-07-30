@@ -60,6 +60,7 @@ use App\Http\Controllers\Api\WinnersController;
 use App\Http\Controllers\Api\WishlistAdsController;
 use App\Http\Controllers\Api\WishlistDealsController;
 use App\Http\Controllers\VitrineController;
+use App\Http\Controllers\Api\ViewController;
 
 
 /*
@@ -146,6 +147,9 @@ Route::get('/invoices/{number}/pdf', [InvoicesController::class, 'downloadPDF'])
 Route::post('/invoices/{number}/pay', [InvoicesController::class, 'pay']);
 Route::post('/invoices/{number}/cancel', [InvoicesController::class, 'cancel']);
 
+Route::get('/products/{id}/stats', [ViewController::class, 'productStats']);
+Route::get('/ads/{id}/stats', [ViewController::class, 'adStats']);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -221,7 +225,11 @@ Route::middleware('auth:api')->group(function () {
 
     // ---- Signalements (creer / consulter les siens) ----
     Route::apiResource('reports', ReportsController::class)->only(['index', 'show', 'store']);
+
+    Route::get('/recently-viewed', [ViewController::class, 'recent']);
+    Route::get('/users/{id}/stats', [ViewController::class, 'userStats']);
 });
+
 
 
 /*
@@ -290,6 +298,7 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
 
 Route::middleware(['auth:api', 'admin'])->group(function () {
 
+<<<<<<< HEAD
     // ---- Activation / moderation ----
     Route::patch('/prizes/{prizes}/activate', [PrizesController::class, 'activate']);
     Route::patch('/ads/{ads}/activate', [AdsController::class, 'activate']);
@@ -359,4 +368,8 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     // ---- Statistiques globales ----
     Route::get('/invoices/statistics', [InvoicesController::class, 'statistics']);
     Route::get('/invoices/revenue/monthly', [InvoicesController::class, 'monthlyRevenue']);
+=======
+    // ---- Gestion complete des utilisateurs ----
+    Route::apiResource('users', UsersController::class);
+>>>>>>> a19e86f58b49e0945bfb30b07a65d0fb0286bc61
 });

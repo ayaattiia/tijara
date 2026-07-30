@@ -48,28 +48,30 @@ class UsersController extends Controller
         return response()->json($item, 201);
     }
 
+
     public function show($users)
     {
-        try {
+        $profile = Users::findOrFail($users);
 
-            $profile = Users::findOrFail($users);
+        $visitor = auth('api')->user();
 
-
-            $visitor = auth('api')->user();
-
-
-            return response()->json([
-                "profile" => $profile,
-                "visitor" => $visitor
-            ]);
-        } catch (\Exception $e) {
-
-            return response()->json([
-                "error" => $e->getMessage(),
-                "line" => $e->getLine(),
-                "file" => $e->getFile()
-            ], 500);
+        if ($visitor) {
+            $this->viewController->registerView(
+                $visitor,
+                'user',
+                $profile
+            );
+        } else {
+            // Guest view
+            $profile->ViewCount = ($profile->ViewCount ?? 0) + 1;
+            $profile->LastViewedAt = now();
+            $profile->save();
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => $profile
+        ]);
     }
     public function update(Request $request, $users)
     {
