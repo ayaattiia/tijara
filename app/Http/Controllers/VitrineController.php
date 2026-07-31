@@ -6,6 +6,7 @@ use App\Models\Ads;
 use App\Models\Products;
 use App\Models\Categories;
 use App\Models\Brands;
+use App\Models\Notifications;
 
 
 class VitrineController extends Controller
@@ -24,6 +25,15 @@ class VitrineController extends Controller
             ->orderBy('IdCateg', 'desc')
             ->get();
 
+        $notifications = [];
+
+            // Si l'utilisateur est connecté, on ajoute ses notifications
+            if (auth('api')->check()) {
+                $notifications = Notifications::where('IdUser', auth('api')->id())
+                    ->where('IsRead', 0) 
+                    ->orderBy('IdNotification', 'desc')
+                    ->get();
+            }
             
         $brands = Brands::orderBy('IdBrand', 'desc')
         // ->take(8)
@@ -41,6 +51,8 @@ class VitrineController extends Controller
             'latestAds' => $latestAds,
             'latestProducts' => $latestProducts,
             'featuredProducts' => $featuredProducts,
+            'notifications' => $notifications,
+
 
 
         ]);
