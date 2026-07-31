@@ -24,6 +24,8 @@ class NotificationsController extends Controller
             ['Type', 'IsRead', 'IdUser'],
             ['Date']
         );
+        $query->where('IdUser', auth('api')->id());
+
 
         return response()->json($query->paginate($perPage));
     }
