@@ -19,4 +19,13 @@ class Message extends Model
     {
         return $this->belongsTo(Users::class, 'user_id', 'IdUser');
     }
+        // app/Models/Message.php
+    protected $appends = ['attachment_url'];
+
+    public function getAttachmentUrlAttribute()
+    {
+        return $this->attachment_path
+            ? asset('storage/' . $this->attachment_path)
+            : null;
+    }
 }

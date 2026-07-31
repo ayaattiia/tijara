@@ -2108,3 +2108,7 @@ CREATE TABLE `messages` (
     FOREIGN KEY (`conversation_id`) REFERENCES `conversations`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`idUser`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `messages`
+ADD COLUMN `attachment_path` VARCHAR(255) NULL AFTER `body`,
+ADD COLUMN `attachment_type` VARCHAR(50) NULL AFTER `attachment_path`;
