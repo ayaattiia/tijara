@@ -7,8 +7,7 @@ use App\Models\Users;
 
 class Message extends Model
 {
-    protected $fillable = ['conversation_id', 'user_id', 'body'];
-   
+    protected $fillable = ['conversation_id', 'user_id', 'body', 'attachment_path', 'attachment_type'];   
 
     public function conversation(): BelongsTo
     {

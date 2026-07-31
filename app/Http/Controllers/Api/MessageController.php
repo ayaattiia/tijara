@@ -9,7 +9,6 @@ use App\Events\MessageNotification;
 use App\Models\Conversation;
 use App\Models\Notifications;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
@@ -23,10 +22,9 @@ class MessageController extends Controller
 
         $request->validate([
             'body' => 'nullable|string|max:2000',
-            'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xlsx,zip', // 10 Mo max
+            'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xlsx,zip',
         ]);
 
-        // Il faut au moins un texte OU une pièce jointe
         if (! $request->filled('body') && ! $request->hasFile('attachment')) {
             return response()->json([
                 'message' => 'Le message doit contenir du texte ou une pièce jointe.',
@@ -38,25 +36,30 @@ class MessageController extends Controller
 
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
-            $attachmentPath = $file->store('messages', 'public');
 
-            $attachmentType = str_starts_with($file->getMimeType(), 'image/')
+            // ⚠️ On récupère le mimetype AVANT le move()
+            $mimeType = $file->getMimeType();
+
+            $filename = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+            $file->move(public_path('assets/chats'), $filename);
+
+            $attachmentPath = 'assets/chats/' . $filename;
+
+            $attachmentType = str_starts_with($mimeType, 'image/')
                 ? 'image'
                 : 'file';
         }
 
         $message = $conversation->messages()->create([
             'user_id' => $authId,
-            'body' => $request->body,
+            'body' => $request->body ?? '',
             'attachment_path' => $attachmentPath,
             'attachment_type' => $attachmentType,
         ]);
-
         broadcast(new MessageSent($message))->toOthers();
 
         $sender = auth('api')->user();
-
-        // Notifier chaque autre participant de la conversation
         $recipients = $conversation->users->where('IdUser', '!=', $authId);
 
         foreach ($recipients as $recipient) {
