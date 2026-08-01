@@ -365,20 +365,7 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
     Route::get('/invoices/statistics', [InvoicesController::class, 'statistics']);
     Route::get('/invoices/revenue/monthly', [InvoicesController::class, 'monthlyRevenue']);
 
-
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| 4) ROUTES ADMIN UNIQUEMENT — auth:api + middleware 'admin' (IdRole = 3)
-|    Acces global / transverse a toute la plateforme.
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth:api', 'admin'])->group(function () {
-
-    // ---- Activation / moderation ----
+        // ---- Activation / moderation ----
     Route::patch('/prizes/{prizes}/activate', [PrizesController::class, 'activate']);
     Route::patch('/ads/{ads}/activate', [AdsController::class, 'activate']);
     Route::patch('/products/{products}/activate', [ProductsController::class, 'activate']);
@@ -392,6 +379,20 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::apiResource('users', UsersController::class)->only(['index', 'destroy']);
     Route::apiResource('wallets', WalletsController::class)->only(['index', 'update', 'destroy']);
     Route::apiResource('email-tokens', EmailTokensController::class);
+
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| 4) ROUTES ADMIN UNIQUEMENT — auth:api + middleware 'admin' (IdRole = 3)
+|    Acces global / transverse a toute la plateforme.
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:api', 'admin'])->group(function () {
+
+
     // ---- Gestion complete des utilisateurs ----
     Route::apiResource('users', UsersController::class);
 });
