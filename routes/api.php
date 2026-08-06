@@ -92,6 +92,12 @@ use App\Http\Controllers\ConversationController;
 |   a confirmer avant mise en prod, sinon elles renverront une erreur 500.
 |   index() couvre deja les memes filtres via query string (?search=,
 |   ?IdCateg=, ?PriceAd_min=&PriceAd_max=, ?Active=...).
+| - Fusion du 06/08/2026 : la version distante avait un doublon de la
+|   Section 4 (admin) avec un groupe 'orders' plus restrictif
+|   (['index','destroy']) et un second bloc middleware admin en fin de
+|   fichier qui ne faisait que redeclarer 'users'. Les deux ont ete
+|   dedupliques ici : une seule Section 4, orders garde 'update' pour
+|   permettre a l'admin de trancher les litiges (voir NB ci-dessous).
 |--------------------------------------------------------------------------
 */
 
