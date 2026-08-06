@@ -37,15 +37,17 @@ class MessageController extends Controller
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
 
-            // ⚠️ On récupère le mimetype AVANT le move()
+            $originalName = $file->getClientOriginalName();
+
+            // Get mimetype before move()
             $mimeType = $file->getMimeType();
 
-            $filename = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
+            // Use original filename
+            $filename = $originalName;
 
             $file->move(public_path('assets/chats'), $filename);
 
             $attachmentPath = 'assets/chats/' . $filename;
-
             $attachmentType = str_starts_with($mimeType, 'image/')
                 ? 'image'
                 : 'file';

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -7,7 +8,7 @@ use App\Models\Users;
 
 class Message extends Model
 {
-    protected $fillable = ['conversation_id', 'user_id', 'body', 'attachment_path', 'attachment_type'];   
+    protected $fillable = ['conversation_id', 'user_id', 'body', 'attachment_path', 'attachment_type'];
 
     public function conversation(): BelongsTo
     {
@@ -18,13 +19,17 @@ class Message extends Model
     {
         return $this->belongsTo(Users::class, 'user_id', 'IdUser');
     }
-        // app/Models/Message.php
-    protected $appends = ['attachment_url'];
+    // app/Models/Message.php
+    protected $appends = [
+        'attachment_url',
+    ];
 
     public function getAttachmentUrlAttribute()
     {
-        return $this->attachment_path
-            ? asset('storage/' . $this->attachment_path)
-            : null;
+        if (!$this->attachment_path) {
+            return null;
+        }
+
+        return asset($this->attachment_path);
     }
 }

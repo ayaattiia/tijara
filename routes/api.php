@@ -64,46 +64,69 @@ use App\Http\Controllers\Api\ViewController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\ConversationController;
 
-
-
+/*
+|--------------------------------------------------------------------------
+| ROLES DE LA PLATEFORME TIJARA
+|--------------------------------------------------------------------------
+| IdRole = 1 -> User (acheteur / visiteur connecte)
+| IdRole = 2 -> Entreprise (vendeur)
+| IdRole = 3 -> Admin (moderation + configuration globale)
+|
+| CHANGELOG (audit du 01/08/2026) :
+| - Suppression de la route 'invoices index' dupliquee en Section 3
+|   (meme URL que celle de la Section 2, jamais executee -> code mort).
+| - Ajout de routes vendeur scopees : /vendors/{id}/payments,
+|   /vendors/{id}/transports, /vendors/{id}/reports (l'entreprise ne
+|   pouvait voir que ses factures, pas ses paiements/transports/signalements).
+| - Remplacement de PUT/DELETE brut sur /orders (cote acheteur) par des
+|   transitions explicites : cancel (acheteur), accept/reject/ship
+|   (vendeur), meme logique que /ads/{id}/activate deja en place.
+| - /products/{id}/stats et /ads/{id}/stats deplaces a cote de leurs
+|   routes de module respectives (etaient isolees en bas de Section 1).
+| - Ajout de tags en lecture publique (Section 1) : rien ne les exposait
+|   avant, alors que Section 2 permettait deja de les creer/editer.
+| - ATTENTION : /ads/search|category|typecat|state|country|user|price|active
+|   et l'equivalent /products/... pointent vers des methodes de controleur
+|   (search, byCategory, byUser, byPriceRange, byActive...) absentes du
+|   code source partage. Laissees en place mais marquees TODO ci-dessous -
+|   a confirmer avant mise en prod, sinon elles renverront une erreur 500.
+|   index() couvre deja les memes filtres via query string (?search=,
+|   ?IdCateg=, ?PriceAd_min=&PriceAd_max=, ?Active=...).
+|--------------------------------------------------------------------------
+*/
 
 
 /*
 |--------------------------------------------------------------------------
-| 1) ROUTES PUBLIQUES — pas d'authentification requise
-|    Uniquement : creation de compte, connexion, et consultation en
-|    LECTURE SEULE du catalogue (comme un visiteur non connecte).
-|    Aucun apiResource complet ici : ca ouvrirait store/update/destroy
-|    a tout le monde et rendrait les middlewares plus bas inutiles.
+| 1) PUBLIC — pas d'authentification requise
 |--------------------------------------------------------------------------
 */
 
+// ---- Authentification ----
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-
 Route::get('/auth/facebook', [AuthController::class, 'redirectToFacebook']);
 Route::get('/auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
 
-
-
-// ---- Vitrine publique  ----
+// ---- Vitrine publique ----
 Route::get('/vitrine', [VitrineController::class, 'index']);
-
-
 
 // ---- Catalogue produits (lecture seule) ----
 Route::get('/products', [ProductsController::class, 'index']);
+// TODO verifier existence des methodes ci-dessous avant prod (voir CHANGELOG)
 Route::get('/products/search/{search}', [ProductsController::class, 'search']);
 Route::get('/products/category/{IdCateorie}', [ProductsController::class, 'byCategory']);
 Route::get('/products/user/{IdUser}', [ProductsController::class, 'byUser']);
 Route::get('/products/price/{min_price}/{max_price}', [ProductsController::class, 'byPriceRange']);
 Route::get('/products/active/{Active}', [ProductsController::class, 'byActive']);
+Route::get('/products/{id}/stats', [ViewController::class, 'productStats']);
 Route::get('/products/{products}', [ProductsController::class, 'show']);
 
 // ---- Annonces (lecture seule) ----
 Route::get('/ads', [AdsController::class, 'index']);
+// TODO verifier existence des methodes ci-dessous avant prod (voir CHANGELOG)
 Route::get('/ads/search/{search}', [AdsController::class, 'search']);
 Route::get('/ads/category/{IdCateg}', [AdsController::class, 'byCategory']);
 Route::get('/ads/typecat/{Idtypecat}', [AdsController::class, 'byTypeCat']);
@@ -112,6 +135,7 @@ Route::get('/ads/country/{IdCountry}', [AdsController::class, 'byCountry']);
 Route::get('/ads/user/{IdUser}', [AdsController::class, 'byUser']);
 Route::get('/ads/price/{min_price}/{max_price}', [AdsController::class, 'byPriceRange']);
 Route::get('/ads/active/{Active}', [AdsController::class, 'byActive']);
+Route::get('/ads/{id}/stats', [ViewController::class, 'adStats']);
 Route::get('/ads/{ads}', [AdsController::class, 'show']);
 
 // ---- Deals / promotions (lecture seule) ----
@@ -138,6 +162,9 @@ Route::apiResource('point-packets', PointPacketsController::class)->only(['index
 Route::apiResource('boost-ads-packs', BoostAdsPacksController::class)->only(['index', 'show']); // pricing packs
 Route::apiResource('prizes', PrizesController::class)->only(['index', 'show']); // catalogue public de lots
 Route::apiResource('vendors', VendorsController::class)->only(['index', 'show']); // fiches vendeurs publiques
+// Tags: consultables publiquement (ex: tags populaires sur une annonce) ;
+// creation/edition reste reservee aux users connectes (Section 2).
+Route::apiResource('tags', TagsController::class)->only(['index', 'show']);
 
 // ---- Avis / notes (lecture seule, preuve sociale) ----
 Route::apiResource('reviews', ReviewsController::class)->only(['index', 'show']);
@@ -152,16 +179,10 @@ Route::get('/invoices/{number}/pdf', [InvoicesController::class, 'downloadPDF'])
 Route::post('/invoices/{number}/pay', [InvoicesController::class, 'pay']);
 Route::post('/invoices/{number}/cancel', [InvoicesController::class, 'cancel']);
 
-Route::get('/products/{id}/stats', [ViewController::class, 'productStats']);
-Route::get('/ads/{id}/stats', [ViewController::class, 'adStats']);
-
 
 /*
 |--------------------------------------------------------------------------
-| 2) ROUTES UTILISATEUR CONNECTE (auth:api) — cote "acheteur"
-|    IdRole = 1 (user), mais aussi accessible a 2 (entreprise) et 3 (admin).
-|    Les referentiels en lecture seule (categories, brands, ...) ne sont
-|    PAS redeclares ici : ils sont deja publics en Section 1.
+| 2) USER CONNECTE — auth:api (IdRole = 1, mais commun a 2 et 3 aussi)
 |--------------------------------------------------------------------------
 */
 
@@ -187,6 +208,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('wishlist-deals', WishlistDealsController::class);
 
     // ---- Interactions sociales ----
+    // NB (audit) : update/destroy doivent verifier IdUser === auth()->id()
+    // cote controleur - non visible depuis les routes, a corriger dans
+    // AdCommentsController / AdLikesController / CommentsController / LikesController.
     Route::apiResource('ad-comments', AdCommentsController::class);
     Route::apiResource('ad-likes', AdLikesController::class);
     Route::apiResource('comments', CommentsController::class);
@@ -194,29 +218,38 @@ Route::middleware('auth:api')->group(function () {
     // index/show publics (Section 1) ; ici on n'ouvre que la creation/edition/suppression
     Route::apiResource('reviews', ReviewsController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('ratings', RatingsController::class)->only(['store', 'update', 'destroy']);
-    
-    // Route::apiResource('messages', MessagesController::class);
 
+    // Route::apiResource('messages', MessagesController::class);
     // Route::post('/chats/start', [ChatsController::class, 'start']);
     // Route::get('/chats', [ChatsController::class, 'index']);
     // Route::get('/chats/{chats}', [ChatsController::class, 'show']);
     // Route::put('/chats/{chats}', [ChatsController::class, 'update']);
     // Route::delete('/chats/{chats}', [ChatsController::class, 'destroy']);
-
     // Route::get('/chats/{idChat}/messages', [ChatMessagesController::class, 'index']);
     // Route::post('/chats/{idChat}/messages', [ChatMessagesController::class, 'store']);
     // Route::get('/chat-messages/{chat_messages}', [ChatMessagesController::class, 'show']);
     // Route::delete('/chat-messages/{chat_messages}', [ChatMessagesController::class, 'destroy']);
 
+    // ---- Conversations / messages (acheteur <-> vendeur) ----
+    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
+    Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+    Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+
     Route::apiResource('notifications', NotificationsController::class);
     Route::apiResource('user-follows', UserFollowsController::class);
-    // index/show des tags publics si besoin ; ici creation/edition
+    // index/show des tags publics (Section 1) ; ici creation/edition
     Route::apiResource('tags', TagsController::class)->only(['store', 'update', 'destroy']);
 
-    // ---- Commandes / paiements / livraisons (les siennes, cote acheteur) ----
-    // NB: le controleur doit filtrer index/show sur l'utilisateur connecte
-    // (sauf pour l'admin, qui a son propre acces global en Section 4).
-    Route::apiResource('orders', OrdersController::class);
+    // ---- Commandes (cote acheteur) ----
+    // NB (audit) : store/index/show uniquement ici. update/destroy bruts
+    // retires - remplaces par une transition explicite 'cancel', pour ne
+    // pas laisser un acheteur ecrire n'importe quel champ (ex: Status)
+    // via un PUT generique. Le controleur doit filtrer index/show sur
+    // l'utilisateur connecte (sauf admin, acces global en Section 4).
+    Route::apiResource('orders', OrdersController::class)->only(['index', 'show', 'store']);
+    Route::patch('/orders/{order}/cancel', [OrdersController::class, 'cancel']);
+
     Route::get('/order-details/total/{idOrder}', [OrderDetailsController::class, 'total']);
     Route::apiResource('order-details', OrderDetailsController::class);
     Route::apiResource('payments', PaymentsController::class)->only(['index', 'show', 'store']);
@@ -227,41 +260,26 @@ Route::middleware('auth:api')->group(function () {
     // ---- Profil / compte (uniquement le sien : pas d'index ni destroy ici) ----
     Route::get('/users/{users}', [UsersController::class, 'show']);
     Route::put('/users/{users}', [UsersController::class, 'update']);
+    Route::get('/users/{id}/stats', [ViewController::class, 'userStats']);
+    Route::get('/recently-viewed', [ViewController::class, 'recent']);
     Route::get('/wallets/{wallets}', [WalletsController::class, 'show']);
 
     // ---- Signalements (creer / consulter les siens) ----
     Route::apiResource('reports', ReportsController::class)->only(['index', 'show', 'store']);
-
-    Route::get('/recently-viewed', [ViewController::class, 'recent']);
-    Route::get('/users/{id}/stats', [ViewController::class, 'userStats']);
-
-
-    // ---- Conversations / messages (cote acheteur) ----
-    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
-    Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
-    Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
-
-    Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
-
-
 });
-
-
-
 
 
 /*
 |--------------------------------------------------------------------------
-| 3) ROUTES ENTREPRISE (VENDEUR) — auth:api + middleware 'entreprise'
-|    IdRole = 2. C'est ici que vit toute la logique "vendeur" (comme
-|    l'espace pro sur Wamia.tn) : publier/gerer ses annonces, produits,
-|    deals, booster ses publications, consulter ses ventes.
+| 3) ENTREPRISE (VENDEUR) — auth:api + middleware 'entreprise' (IdRole = 2)
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth:api', 'entreprise'])->group(function () {
 
     // ---- Gestion de ses propres produits ----
+    // NB (audit) : le controleur DOIT verifier item->IdUser === auth()->id()
+    // avant update/destroy/media/prize - actuellement absent, voir rapport.
     Route::post('/products', [ProductsController::class, 'store']);
     Route::put('/products/{products}', [ProductsController::class, 'update']);
     Route::delete('/products/{products}', [ProductsController::class, 'destroy']);
@@ -283,8 +301,15 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
     Route::apiResource('deals', DealsController::class)->except(['index', 'show']);
 
     // ---- Boost des annonces/produits (visibilite payante) ----
-    // Consultation des packs disponibles + achat/gestion de ses propres boosts
     Route::apiResource('boosts', BoostsController::class)->except(['index']);
+
+    // ---- Commandes recues (cote vendeur) ----
+    // NB (audit) : nouveau - le vendeur n'avait auparavant AUCUNE route
+    // pour agir sur les commandes contenant ses propres produits/annonces.
+    Route::get('/orders/seller', [OrdersController::class, 'sellerOrders']);
+    Route::patch('/orders/{order}/accept', [OrdersController::class, 'accept']);
+    Route::patch('/orders/{order}/reject', [OrdersController::class, 'reject']);
+    Route::patch('/orders/{order}/ship', [OrdersController::class, 'markShipped']);
 
     // ---- Livraisons liees a ses ventes ----
     Route::get('/deliveries/order/{idOrder}', [DeliveriesController::class, 'orderDeliveries']);
@@ -300,7 +325,12 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
     // ---- Espace vendeur : sa fiche entreprise + ses ventes ----
     Route::apiResource('vendors', VendorsController::class)->only(['store', 'update', 'destroy']);
     Route::get('/vendors/{id}/invoices', [InvoicesController::class, 'vendorInvoices']);
-    Route::apiResource('invoices', InvoicesController::class)->only(['index'])->names('vendor.invoices.index');
+    // NB (audit) : nouvelles routes scopees - avant cela, un vendeur devait
+    // passer par des endpoints admin-only pour voir ses propres paiements,
+    // ses transports ou les signalements lies a son activite.
+    Route::get('/vendors/{id}/payments', [PaymentsController::class, 'vendorPayments']);
+    Route::get('/vendors/{id}/transports', [TransportsController::class, 'vendorTransports']);
+    Route::get('/vendors/{id}/reports', [ReportsController::class, 'vendorReports']);
 
     // ---- Suivi de ses paiements recus ----
     Route::get('/payments/order/{idOrder}', [PaymentsController::class, 'orderPayments']);
@@ -309,14 +339,13 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| 4) ROUTES ADMIN UNIQUEMENT — auth:api + middleware 'admin' (IdRole = 3)
-|    Acces global / transverse a toute la plateforme.
+| 4) ADMIN — auth:api + middleware 'admin' (IdRole = 3)
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth:api', 'admin'])->group(function () {
 
-    // ---- Activation / moderation ----
+    // ---- Activation / moderation du contenu publie ----
     Route::patch('/prizes/{prizes}/activate', [PrizesController::class, 'activate']);
     Route::patch('/ads/{ads}/activate', [AdsController::class, 'activate']);
     Route::patch('/products/{products}/activate', [ProductsController::class, 'activate']);
@@ -331,8 +360,11 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::apiResource('wallets', WalletsController::class)->only(['index', 'update', 'destroy']);
     Route::apiResource('email-tokens', EmailTokensController::class);
 
-    // ---- Vision globale des commandes / paiements / factures ----
-    Route::apiResource('orders', OrdersController::class)->only(['index', 'destroy']);
+    // ---- Supervision globale et override des commandes / paiements / factures ----
+    // NB (audit) : l'admin garde un acces global complet (index/update/destroy)
+    // pour intervenir en cas de litige - c'est la difference structurelle
+    // avec les transitions restreintes des Sections 2 et 3.
+    Route::apiResource('orders', OrdersController::class)->only(['index', 'update', 'destroy']);
     Route::get('/payments/user/{idUser}', [PaymentsController::class, 'userPayments']);
     Route::post('/payments/{id}/complete', [PaymentsController::class, 'markCompleted']);
     Route::post('/payments/{id}/refund', [PaymentsController::class, 'refund']);
@@ -345,7 +377,7 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::get('/transports/{id}/stats', [TransportsController::class, 'stats']);
     Route::post('/transports/{id}/toggle-active', [TransportsController::class, 'toggleActive']);
 
-    // ---- Configuration de la plateforme ----
+    // ---- Configuration de la plateforme (referentiels) ----
     Route::apiResource('admin-settings', AdminSettingsController::class);
     Route::apiResource('type-category', TypeCategoryController::class)->except(['index', 'show']);
     Route::apiResource('labels', LabelsController::class)->except(['index', 'show']);

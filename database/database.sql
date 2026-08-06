@@ -2114,3 +2114,5 @@ ADD COLUMN `attachment_path` VARCHAR(255) NULL AFTER `body`,
 ADD COLUMN `attachment_type` VARCHAR(50) NULL AFTER `attachment_path`;
 
 ALTER TABLE `messages` MODIFY `body` TEXT NULL;
+
+

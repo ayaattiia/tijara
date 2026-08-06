@@ -71,7 +71,7 @@ class Users extends Authenticatable
     {
         return $this->belongsTo(\App\Models\Roles::class, 'IdRole', 'IdRole');
     }
-    
+
 
     public function state()
     {
@@ -92,13 +92,15 @@ class Users extends Authenticatable
         );
     }
 
-public function conversations(): BelongsToMany
-{
-    return $this->belongsToMany(
-        Conversation::class,
-        'conversation_user',
-        'idUser',               // clé de CE modèle (Users) dans la pivot
-        'conversation_id'      // clé de l'AUTRE modèle (Conversation) dans la pivot
-    );
-}
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Conversation::class,
+            'conversation_user',
+            'user_id',
+            'conversation_id',
+            'IdUser',
+            'id'
+        );
+    }
 }
