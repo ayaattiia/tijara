@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ViewController;
 use App\Models\Deals;
 use Illuminate\Http\Request;
+use App\Services\RelatedItemsService;
 
 class DealsController extends Controller
 {
@@ -12,6 +14,13 @@ class DealsController extends Controller
     private const DEFAULT_PER_PAGE = 10;
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
+
+    private ViewController $viewController;
+
+    public function __construct(ViewController $viewController)
+    {
+        $this->viewController = $viewController;
+    }
 
     public function index(Request $request)
     {
@@ -63,6 +72,38 @@ class DealsController extends Controller
         return response()->json($query->paginate($perPage));
     }
 
+    public function related($deals, RelatedItemsService $relatedService)
+    {
+        $item = Deals::findOrFail($deals);
+        $related = $relatedService->relatedTo($item, 'deal');
+
+        return response()->json([
+            'success' => true,
+            'data' => $related,
+        ]);
+    }
+
+    /**
+     * PATCH /api/deals/{deals}/activate
+     * Reservé aux admins.
+     */
+    public function activate(Request $request, $deals)
+    {
+        $item = Deals::findOrFail($deals);
+
+        if ($request->has('active')) {
+            $item->active = (int) $request->input('active');
+        } else {
+            $item->active = $item->active ? 0 : 1;
+        }
+
+        $item->save();
+
+        return response()->json([
+            'message' => 'Statut mis a jour avec succes.',
+            'data'    => $item->fresh(),
+        ]);
+    }
     public function store(Request $request)
     {
         $data = $request->all();
@@ -73,7 +114,21 @@ class DealsController extends Controller
     public function show($deals)
     {
         $item = Deals::findOrFail($deals);
-        return response()->json($item);
+
+        $user = auth('api')->user();
+
+        if ($user) {
+            $this->viewController->registerView($user, 'deal', $item);
+        } else {
+            $item->ViewCount = ($item->ViewCount ?? 0) + 1;
+            $item->LastViewedAt = now();
+            $item->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $item
+        ]);
     }
 
     public function update(Request $request, $deals)

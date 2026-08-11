@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\OrderDetails;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Deals;
+use App\Models\Orders;
+use Illuminate\Support\Facades\DB;
 
 class OrderDetailsController extends Controller
 {
@@ -62,14 +65,48 @@ class OrderDetailsController extends Controller
         ]);
 
         if ($validator->fails()) {
-
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()
             ], 422);
         }
 
-        $item = OrderDetails::create($validator->validated());
+        $data = $validator->validated();
+
+        // L'Order parente porte déjà IdDeal (si cette commande concerne un deal).
+        // On regarde là, pas sur OrderDetails, pour savoir s'il faut décrémenter.
+        $order = Orders::findOrFail($data['IdOrder']);
+
+        if (!empty($order->IdDeal)) {
+            try {
+                $item = DB::transaction(function () use ($data, $order) {
+                    $deal = Deals::lockForUpdate()->findOrFail($order->IdDeal);
+                    $remaining = (int) $deal->quantity;
+                    $requested = (int) $data['Quantity'];
+
+                    if ($remaining < $requested) {
+                        abort(409, 'Stock insuffisant pour ce deal.');
+                    }
+
+                    $deal->quantity = (string) ($remaining - $requested);
+                    if (($remaining - $requested) <= 0
+                        || (!empty($deal->dateEnd) && now()->greaterThan($deal->dateEnd))
+                    ) {
+                        $deal->active = 0;
+                    }
+                    $deal->save();
+
+                    return OrderDetails::create($data);
+                });
+            } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], $e->getStatusCode());
+            }
+        } else {
+            $item = OrderDetails::create($data);
+        }
 
         return response()->json([
             'success' => true,

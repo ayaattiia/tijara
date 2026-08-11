@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Users;
 use App\Models\Products;
 use App\Models\Ads;
+use App\Models\Deals; // à ajouter en haut du fichier
+
 
 class ViewController extends Controller
 {
@@ -98,39 +100,29 @@ class ViewController extends Controller
         $result = [];
 
 
-
         foreach ($recent as $view) {
+            $type = $view['type'] ?? '';
 
-
-            if (($view['type'] ?? '') === 'product') {
-
-
+            if ($type === 'product') {
                 $item = Products::find($view['id']);
-            } elseif (($view['type'] ?? '') === 'user') {
+            } elseif ($type === 'deal') {
+                $item = Deals::find($view['id']);
+            } elseif ($type === 'user') {
                 $item = Users::find($view['id']);
-            } else {
-
-
+            } elseif ($type === 'ad') {
                 $item = Ads::find($view['id']);
+            } else {
+                continue; // type inconnu : on ignore plutôt que de deviner
             }
 
-
-
             if ($item) {
-
                 $result[] = [
-
                     'type' => $view['type'],
-
                     'viewed_at' => $view['at'],
-
                     'data' => $item
-
                 ];
             }
         }
-
-
 
         return response()->json([
 

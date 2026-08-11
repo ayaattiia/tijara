@@ -112,11 +112,11 @@ class Products extends Model
     }
 
     public function brand()
-{
-    return $this->belongsTo(
-        \App\Models\Brands::class,
-        'IdBrand',
-        'IdBrand'
-    );
-}
+    {
+        return $this->belongsTo(
+            \App\Models\Brands::class,
+            'IdBrand',
+            'IdBrand'
+        );
+    }
 }

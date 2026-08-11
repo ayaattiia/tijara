@@ -9,6 +9,7 @@ use App\Models\Users;
 use App\Models\Features;
 use App\Models\FeaturesValues;
 use Illuminate\Http\Request;
+use App\Services\RelatedItemsService;
 
 class AdsController extends Controller
 {
@@ -62,6 +63,17 @@ class AdsController extends Controller
         }
 
         return response()->json($query->paginate($perPage));
+    }
+
+    public function related($ads, RelatedItemsService $relatedService)
+    {
+        $item = Ads::findOrFail($ads);
+        $related = $relatedService->relatedTo($item, 'ad');
+
+        return response()->json([
+            'success' => true,
+            'data' => $related,
+        ]);
     }
 
     public function store(Request $request)

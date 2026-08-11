@@ -35,7 +35,9 @@ class Deals extends Model
         'ownerdeals',
         'brand',
         'startDate',
-        'TotalCount'
+        'TotalCount',
+        'ViewCount',
+        'LastViewedAt'
     ];
 
     public function idtypecat()
@@ -63,4 +65,51 @@ class Deals extends Model
         return $this->belongsTo(\App\Models\Prizes::class, 'idPrize', 'idPrize');
     }
 
+    public function likedBy()
+    {
+        return $this->hasMany(\App\Models\DealLikes::class, 'IdDeal', 'IdDeal');
+    }
+
+    public function getQuantityProgressAttribute()
+    {
+        $total = (int) $this->TotalCount;
+        $remaining = (int) $this->quantity;
+
+        if ($total <= 0) {
+            return 0;
+        }
+
+        $sold = $total - $remaining;
+        return round(($sold / $total) * 100, 1);
+    }
+
+    public function getTimeRemainingAttribute()
+    {
+        if (empty($this->dateEnd)) {
+            return null;
+        }
+        return max(0, now()->diffInSeconds(\Carbon\Carbon::parse($this->dateEnd), false));
+    }
+
+    public function getTimeProgressAttribute()
+    {
+        if (empty($this->startDate) || empty($this->dateEnd)) {
+            return 0;
+        }
+
+        $start = \Carbon\Carbon::parse($this->startDate);
+        $end = \Carbon\Carbon::parse($this->dateEnd);
+        $total = $start->diffInSeconds($end);
+        $elapsed = $start->diffInSeconds(now());
+
+        return $total > 0 ? min(100, round(($elapsed / $total) * 100, 1)) : 100;
+    }
+
+    public function getIsExpiredAttribute()
+    {
+        $remaining = (int) $this->quantity;
+        return $remaining <= 0 || (!empty($this->dateEnd) && now()->greaterThan($this->dateEnd));
+    }
+
+    protected $appends = ['QuantityProgress', 'TimeRemaining', 'TimeProgress', 'IsExpired'];
 }

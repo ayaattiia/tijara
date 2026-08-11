@@ -9,6 +9,8 @@ use App\Models\Users;
 use App\Models\Features;
 use App\Models\FeaturesValues;
 use Illuminate\Http\Request;
+use App\Services\RelatedItemsService;
+
 
 class ProductsController extends Controller
 {
@@ -62,6 +64,16 @@ class ProductsController extends Controller
         return response()->json($query->paginate($perPage));
     }
 
+    public function related($products, RelatedItemsService $relatedService)
+    {
+        $item = Products::findOrFail($products);
+        $related = $relatedService->relatedTo($item, 'product');
+
+        return response()->json([
+            'success' => true,
+            'data' => $related,
+        ]);
+    }
     public function store(Request $request)
     {
         $request->validate([

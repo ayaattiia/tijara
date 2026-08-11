@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\CommentsController;
 use App\Http\Controllers\Api\CountriesController;
 use App\Http\Controllers\Api\CountriesFullController;
 use App\Http\Controllers\Api\CouponsController;
+use App\Http\Controllers\Api\DealLikesController;
 use App\Http\Controllers\Api\DealsController;
 use App\Http\Controllers\Api\DealsWishlistController;
 use App\Http\Controllers\Api\DeliveriesController;
@@ -41,6 +42,8 @@ use App\Http\Controllers\Api\PaymentsController;
 use App\Http\Controllers\Api\PermissionsController;
 use App\Http\Controllers\Api\PointPacketsController;
 use App\Http\Controllers\Api\PrizesController;
+use App\Http\Controllers\Api\ProductLikesController;
+
 use App\Http\Controllers\Api\ProductsController;
 use App\Http\Controllers\Api\ProductWishlistController;
 use App\Http\Controllers\Api\RatingsController;
@@ -185,6 +188,10 @@ Route::get('/invoices/{number}/pdf', [InvoicesController::class, 'downloadPDF'])
 Route::post('/invoices/{number}/pay', [InvoicesController::class, 'pay']);
 Route::post('/invoices/{number}/cancel', [InvoicesController::class, 'cancel']);
 
+Route::get('/ads/{ads}/related', [AdsController::class, 'related']);
+Route::get('/products/{products}/related', [ProductsController::class, 'related']);
+Route::get('/deals/{deals}/related', [DealsController::class, 'related']);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -272,6 +279,11 @@ Route::middleware('auth:api')->group(function () {
 
     // ---- Signalements (creer / consulter les siens) ----
     Route::apiResource('reports', ReportsController::class)->only(['index', 'show', 'store']);
+
+    Route::post('/product-likes', [ProductLikesController::class, 'store']);
+    Route::delete('/product-likes/{id}', [ProductLikesController::class, 'destroy']);
+    Route::post('/deal-likes', [DealLikesController::class, 'store']);
+    Route::delete('/deal-likes/{id}', [DealLikesController::class, 'destroy']);
 });
 
 
@@ -426,4 +438,5 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
 
     // ---- Gestion complete des utilisateurs ----
     Route::apiResource('users', UsersController::class);
+    Route::patch('/deals/{deals}/activate', [DealsController::class, 'activate']);
 });

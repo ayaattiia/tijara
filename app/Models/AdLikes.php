@@ -13,7 +13,8 @@ class AdLikes extends Model
     protected $fillable = [
         'IdAd',
         'IdUser',
-        'CreatedAt'
+        'CreatedAt',
+        'LikeCount'
     ];
 
     public function like()
@@ -31,4 +32,8 @@ class AdLikes extends Model
         return $this->belongsTo(\App\Models\Users::class, 'IdUser', 'IdUser');
     }
 
+    public function likedBy()
+    {
+        return $this->hasMany(\App\Models\AdLikes::class, 'IdAd', 'IdAd');
+    }
 }

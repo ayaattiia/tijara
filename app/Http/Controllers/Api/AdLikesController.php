@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdLikes;
+use App\Models\Ads;
 use Illuminate\Http\Request;
 
 class AdLikesController extends Controller
 {
-    // Centralize the default/min/max so you can tweak them in one place
     private const DEFAULT_PER_PAGE = 10;
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
@@ -30,9 +30,26 @@ class AdLikesController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->all();
-        $item = AdLikes::create($data);
-        return response()->json($item, 201);
+        $request->validate(['IdAd' => 'required|integer|exists:Ads,IdAd']);
+        $userId = auth('api')->id();
+
+        $exists = AdLikes::where('IdAd', $request->IdAd)
+            ->where('IdUser', $userId)
+            ->first();
+
+        if ($exists) {
+            return response()->json(['success' => false, 'message' => 'Already liked.'], 409);
+        }
+
+        $item = AdLikes::create([
+            'IdAd'      => $request->IdAd,
+            'IdUser'    => $userId,
+            'CreatedAt' => now(),
+        ]);
+
+        Ads::where('IdAd', $request->IdAd)->increment('LikeCount');
+
+        return response()->json(['success' => true, 'data' => $item], 201);
     }
 
     public function show($ad_likes)
@@ -43,27 +60,31 @@ class AdLikesController extends Controller
 
     public function update(Request $request, $ad_likes)
     {
-        $item = AdLikes::findOrFail($ad_likes);
-        $item->update($request->all());
-        return response()->json($item);
+        // Un like n'a pas de sens à "modifier" (IdAd/IdUser sont figés) —
+        // on bloque plutôt que de laisser un PUT changer le propriétaire du like.
+        return response()->json([
+            'success' => false,
+            'message' => 'Un like ne peut pas être modifié, seulement créé ou supprimé.'
+        ], 405);
     }
 
     public function destroy($ad_likes)
     {
         $item = AdLikes::findOrFail($ad_likes);
+
+        if ($item->IdUser !== auth('api')->id()) {
+            abort(403);
+        }
+
+        Ads::where('IdAd', $item->IdAd)->decrement('LikeCount');
         $item->delete();
+
         return response()->json(null, 204);
     }
 
-    /**
-     * Resolve the per_page value from the request, falling back to a default
-     * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.
-     */
     private function resolvePerPage(Request $request): int
     {
         $perPage = (int) $request->query('per_page', self::DEFAULT_PER_PAGE);
-
-        // Guard against negatives or absurdly large values
         return max(self::MIN_PER_PAGE, min($perPage, self::MAX_PER_PAGE));
     }
 }
