@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ViewController;
 use App\Models\Users;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UsersController extends Controller
 {
@@ -84,6 +85,75 @@ class UsersController extends Controller
         }
         $item->update($data);
         return response()->json($item);
+    }
+
+    /**
+     * PUT /api/profile
+     * Update the currently authenticated user's own profile - no {id}
+     * needed, the user is resolved from the Bearer token.
+     *
+     * Only a safe whitelist of self-editable fields is accepted. Fields
+     * like IdRole, IsVerified, Active, ICN, ICNBusiness, IdentityPicture,
+     * BusinessVerificationPicture, IsBusinessAccount are intentionally
+     * excluded here: those change via the admin/verification flow
+     * (see VerificationController + Admin/UserVerificationController),
+     * not through a generic profile edit.
+     */
+    public function updateProfile(Request $request)
+    {
+        /** @var \App\Models\Users $user */
+        $user = $request->user();
+
+        $data = $request->only([
+            'Username',
+            'FirstName',
+            'LastName',
+            'BirthDate',
+            'Gender',
+            'Telephone',
+            'Location',
+            'City',
+        ]);
+
+        if ($request->hasFile('ProfilePicture')) {
+            $request->validate([
+                'ProfilePicture' => ['image', 'mimes:jpg,jpeg,png', 'max:5120'], // 5MB
+            ]);
+
+            $file = $request->file('ProfilePicture');
+
+            $destination = public_path(config('media.paths.users_profiles'));
+            if (! is_dir($destination)) {
+                mkdir($destination, 0755, true);
+            }
+
+            // Delete the old picture file, but only if it was actually
+            // stored locally by us (not a Facebook/Google avatar URL).
+            if ($user->ProfilePicture && ! Str::startsWith($user->ProfilePicture, ['http://', 'https://'])) {
+                $oldPath = $destination . DIRECTORY_SEPARATOR . basename($user->ProfilePicture);
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            $originalName = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+            $filename     = $user->IdUser . '_' . $originalName . '.' . $file->getClientOriginalExtension();
+
+            $file->move($destination, $filename);
+
+            $data['ProfilePicture'] = $filename;
+        }
+
+        if ($request->filled('Password')) {
+            $data['Password'] = Hash::make($request->input('Password'));
+        }
+
+        $user->update($data);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $user->fresh(),
+        ]);
     }
 
     public function destroy($users)

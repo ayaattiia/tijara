@@ -21,43 +21,67 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'Username'  => 'required|string|max:250',
-            'Email'     => 'required|email|max:250|unique:Users,Email',
-            'Password'  => 'required|string|min:6',
-            'IdRole'    => 'nullable|integer|in:1,2', // 1 = utilisateur, 2 = vendeur
-            'Telephone' => 'nullable|string|max:50|unique:Users,Telephone',
-            'ICN'       => 'nullable|string|max:250|unique:Users,ICN',
-            'ICNBusiness' => ['nullable', 'string', 'max:250', 'unique:Users,ICNBusiness'],
+            'Username'     => 'required|string|max:250',
+            'Email'        => 'required|email|max:250|unique:Users,Email',
+            'Password'     => 'required|string|min:6',
+            'FirstName'    => 'nullable|string|max:250',
+            'LastName'     => 'nullable|string|max:250',
+            'IdRole'       => 'nullable|integer|in:1,2,3', // 1 = utilisateur, 2 = vendeur, 3 = administrateur
+            'Telephone'    => 'nullable|string|max:50|unique:Users,Telephone',
+            'ICN'          => 'nullable|string|max:250|unique:Users,ICN',
+            'ICNBusiness'  => 'nullable|string|max:250|unique:Users,ICNBusiness',
+            'ProfilePicture' => 'nullable|image|mimes:jpg,jpeg,png|max:5120', // 5MB
         ], [
-            'Email.unique'     => 'This email is already used by another account.',
-            'Telephone.unique' => 'This phone number is already used by another account.',
-            'ICN.unique'       => 'This ID card (CIN) number is already used by another account.',
-            'ICNBusiness.unique' => 'This business ID (Matricule Fiscal) is already used by another account.',
+            'Email.unique'       => 'This email is already used by another account.',
+            'Telephone.unique'   => 'This phone number is already used by another account.',
+            'ICN.unique'         => 'This ID card (CIN) number is already used by another account.',
+            'ICNBusiness.unique' => 'This Matricule Fiscal is already used by another account.',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $idRole = $request->IdRole ?? 1; // par defaut utilisateur simple
+
         $user = Users::create([
-            'Username'       => $request->Username,
-            'Email'          => $request->Email,
-            'Password'       => Hash::make($request->Password),
-            'FirstName'      => $request->FirstName,
-            'LastName'       => $request->LastName,
-            'Telephone'      => $request->Telephone,
-            'ICNBusiness'    => $request->ICNBusiness,
-            'ICN'            => $request->ICN,
-            'CreationDate'   => now(),
-            'IdRole'         => $request->IdRole ?? 1, // par defaut utilisateur simple
-            'Active'         => 1,
-            'EmailConfirmed' => 0,
+            'Username'          => $request->Username,
+            'Email'             => $request->Email,
+            'Password'          => Hash::make($request->Password),
+            'FirstName'         => $request->FirstName,
+            'LastName'          => $request->LastName,
+            'Telephone'         => $request->Telephone,
+            'ICN'               => $request->ICN,
+            'ICNBusiness'       => $request->ICNBusiness,
+            'IsBusinessAccount' => $idRole == 2 ? 1 : 0,
+            'CreationDate'      => now(),
+            'IdRole'            => $idRole,
+            'Active'            => 1,
+            'EmailConfirmed'    => 0,
         ]);
+
+        // Profile picture is optional at registration - only handled if a real
+        // file was actually uploaded (multipart/form-data, not raw JSON).
+        if ($request->hasFile('ProfilePicture')) {
+            $file = $request->file('ProfilePicture');
+
+            $destination = public_path(config('media.paths.users_profiles'));
+            if (! is_dir($destination)) {
+                mkdir($destination, 0755, true);
+            }
+
+            $originalName = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+            $filename     = $user->IdUser . '_' . $originalName . '.' . $file->getClientOriginalExtension();
+
+            $file->move($destination, $filename);
+
+            $user->update(['ProfilePicture' => $filename]);
+        }
 
         $token = $user->createToken('auth_token')->accessToken;
 
         return response()->json([
-            'user'  => $user,
+            'user'  => $user->fresh(),
             'token' => $token,
         ], 201);
     }

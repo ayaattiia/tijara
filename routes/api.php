@@ -278,6 +278,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/customers/{id}/invoices', [InvoicesController::class, 'customerInvoices']);
 
     // ---- Profil / compte (uniquement le sien : pas d'index ni destroy ici) ----
+    Route::put('/profile', [UsersController::class, 'updateProfile']);
     Route::get('/users/{users}', [UsersController::class, 'show']);
     Route::put('/users/{users}', [UsersController::class, 'update']);
     Route::get('/users/{id}/stats', [ViewController::class, 'userStats']);
