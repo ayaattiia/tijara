@@ -18,39 +18,49 @@ use Exception;
 
 class AuthController extends Controller
 {
-   public function register(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'Username'  => 'required|string|max:250',
-        'Email'     => 'required|email|max:250|unique:Users,Email',
-        'Password'  => 'required|string|min:6',
-        'IdRole'    => 'nullable|integer|in:1,2', // 1 = utilisateur, 2 = vendeur
-    ]);
+    public function register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'Username'  => 'required|string|max:250',
+            'Email'     => 'required|email|max:250|unique:Users,Email',
+            'Password'  => 'required|string|min:6',
+            'IdRole'    => 'nullable|integer|in:1,2', // 1 = utilisateur, 2 = vendeur
+            'Telephone' => 'nullable|string|max:50|unique:Users,Telephone',
+            'ICN'       => 'nullable|string|max:250|unique:Users,ICN',
+            'ICNBusiness' => ['nullable', 'string', 'max:250', 'unique:Users,ICNBusiness'],
+        ], [
+            'Email.unique'     => 'This email is already used by another account.',
+            'Telephone.unique' => 'This phone number is already used by another account.',
+            'ICN.unique'       => 'This ID card (CIN) number is already used by another account.',
+            'ICNBusiness.unique' => 'This business ID (Matricule Fiscal) is already used by another account.',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 422);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = Users::create([
+            'Username'       => $request->Username,
+            'Email'          => $request->Email,
+            'Password'       => Hash::make($request->Password),
+            'FirstName'      => $request->FirstName,
+            'LastName'       => $request->LastName,
+            'Telephone'      => $request->Telephone,
+            'ICNBusiness'    => $request->ICNBusiness,
+            'ICN'            => $request->ICN,
+            'CreationDate'   => now(),
+            'IdRole'         => $request->IdRole ?? 1, // par defaut utilisateur simple
+            'Active'         => 1,
+            'EmailConfirmed' => 0,
+        ]);
+
+        $token = $user->createToken('auth_token')->accessToken;
+
+        return response()->json([
+            'user'  => $user,
+            'token' => $token,
+        ], 201);
     }
-
-    $user = Users::create([
-        'Username'       => $request->Username,
-        'Email'          => $request->Email,
-        'Password'       => Hash::make($request->Password),
-        'FirstName'      => $request->FirstName,
-        'LastName'       => $request->LastName,
-        'Telephone'      => $request->Telephone,
-        'CreationDate'   => now(),
-        'IdRole'         => $request->IdRole ?? 1, // par defaut utilisateur simple
-        'Active'         => 1,
-        'EmailConfirmed' => 0,
-    ]);
-
-    $token = $user->createToken('auth_token')->accessToken;
-
-    return response()->json([
-        'user'  => $user,
-        'token' => $token,
-    ], 201);
-}
 
     public function login(Request $request)
     {
@@ -168,72 +178,69 @@ class AuthController extends Controller
         return response()->json(['message' => 'Mot de passe reinitialise avec succes']);
     }
 
-public function redirectToFacebook()
-{
-    return Socialite::driver('facebook')
-        ->scopes(['email'])
-        ->stateless()
-        ->redirect();
-}
-
-public function handleFacebookCallback()
-{
-    try {
-
-        $facebookUser = Socialite::driver('facebook')
+    public function redirectToFacebook()
+    {
+        return Socialite::driver('facebook')
+            ->scopes(['email'])
             ->stateless()
-            ->user();
-
-        if (!$facebookUser->getEmail()) {
-            return response()->json([
-                'message' => 'Facebook did not return an email address.'
-            ], 400);
-        }
-
-        $user = Users::where('Email', $facebookUser->getEmail())->first();
-
-        if (!$user) {
-
-            $user = Users::create([
-                'Username'          => $facebookUser->getName(),
-                'FirstName'         => $facebookUser->getName(),
-                'Email'             => $facebookUser->getEmail(),
-                'Password'          => Hash::make(Str::random(32)),
-                'FacebookId'        => $facebookUser->getId(),
-                'ProfilePicture'    => $facebookUser->getAvatar(),
-                'CreationDate'      => now(),
-                'EmailConfirmed'    => 1,
-                'Active'            => 1,
-            ]);
-
-        } else {
-
-            if (!$user->FacebookId) {
-                $user->FacebookId = $facebookUser->getId();
-            }
-
-            if (!$user->ProfilePicture) {
-                $user->ProfilePicture = $facebookUser->getAvatar();
-            }
-
-            $user->save();
-        }
-
-        $token = $user->createToken('facebook')->accessToken;
-
-        return redirect(
-            env('FRONTEND_URL') .
-            '/login-success?token=' .
-            urlencode($token)
-        );
-
-    } catch (Exception $e) {
-
-        return response()->json([
-            'message' => 'Facebook authentication failed.',
-            'error' => $e->getMessage(),
-        ], 500);
-
+            ->redirect();
     }
-}
+
+    public function handleFacebookCallback()
+    {
+        try {
+
+            $facebookUser = Socialite::driver('facebook')
+                ->stateless()
+                ->user();
+
+            if (!$facebookUser->getEmail()) {
+                return response()->json([
+                    'message' => 'Facebook did not return an email address.'
+                ], 400);
+            }
+
+            $user = Users::where('Email', $facebookUser->getEmail())->first();
+
+            if (!$user) {
+
+                $user = Users::create([
+                    'Username'          => $facebookUser->getName(),
+                    'FirstName'         => $facebookUser->getName(),
+                    'Email'             => $facebookUser->getEmail(),
+                    'Password'          => Hash::make(Str::random(32)),
+                    'FacebookId'        => $facebookUser->getId(),
+                    'ProfilePicture'    => $facebookUser->getAvatar(),
+                    'CreationDate'      => now(),
+                    'EmailConfirmed'    => 1,
+                    'Active'            => 1,
+                ]);
+            } else {
+
+                if (!$user->FacebookId) {
+                    $user->FacebookId = $facebookUser->getId();
+                }
+
+                if (!$user->ProfilePicture) {
+                    $user->ProfilePicture = $facebookUser->getAvatar();
+                }
+
+                $user->save();
+            }
+
+            $token = $user->createToken('facebook')->accessToken;
+
+            return redirect(
+                env('FRONTEND_URL') .
+                    '/login-success?token=' .
+                    urlencode($token)
+            );
+        } catch (Exception $e) {
+
+            return response()->json([
+                'message' => 'Facebook authentication failed.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

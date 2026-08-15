@@ -66,6 +66,9 @@ use App\Http\Controllers\VitrineController;
 use App\Http\Controllers\Api\ViewController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\Api\Admin\UserVerificationController;
+use App\Http\Controllers\Api\VerificationController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -203,6 +206,10 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+
+    // ---- Identity verification (CIN / Patente) ----
+    Route::post('/verification/submit', [VerificationController::class, 'submit']);
+    Route::get('/verification/status', [VerificationController::class, 'status']);
 
     // ---- Wishlists (cote acheteur) ----
     Route::post('/ads-wishlist/add', [AdsWishlistController::class, 'addToWishlist']);
@@ -439,4 +446,9 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     // ---- Gestion complete des utilisateurs ----
     Route::apiResource('users', UsersController::class);
     Route::patch('/deals/{deals}/activate', [DealsController::class, 'activate']);
+
+    // ---- Identity verification review ----
+    Route::get('/admin/verifications', [UserVerificationController::class, 'index']);
+    Route::patch('/admin/verifications/{user}/verify', [UserVerificationController::class, 'verify']);
+    Route::patch('/admin/verifications/{user}/reject', [UserVerificationController::class, 'reject']);
 });

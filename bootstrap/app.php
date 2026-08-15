@@ -19,6 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'entreprise' => \App\Http\Middleware\EnsureUserIsEntreprise::class,
 
         ]);
+
+        // This is an API-only backend with no "login" web route. Without this,
+        // any unauthenticated request crashes with a 500 (RouteNotFoundException:
+        // "Route [login] not defined") instead of a clean 401, because the
+        // framework's default guest-redirect tries to build a URL via
+        // route('login') before the 401 JSON handler below ever runs.
+        $middleware->redirectGuestsTo(fn() => null);
     })
 
     ->withExceptions(function (Exceptions $exceptions) {
