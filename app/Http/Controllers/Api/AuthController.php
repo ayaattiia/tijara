@@ -26,7 +26,7 @@ class AuthController extends Controller
             'Password'     => 'required|string|min:6',
             'FirstName'    => 'nullable|string|max:250',
             'LastName'     => 'nullable|string|max:250',
-            'IdRole'       => 'nullable|integer|in:1,2,3', // 1 = utilisateur, 2 = vendeur, 3 = administrateur
+            'IdRole'       => 'nullable|integer|in:1,2', // 1 = utilisateur, 2 = vendeur
             'Telephone'    => 'nullable|string|max:50|unique:Users,Telephone',
             'ICN'          => 'nullable|string|max:250|unique:Users,ICN',
             'ICNBusiness'  => 'nullable|string|max:250|unique:Users,ICNBusiness',
