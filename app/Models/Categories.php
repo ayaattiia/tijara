@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Support\MediaUrl;
+
 
 class Categories extends Model
 {
@@ -33,7 +35,7 @@ class Categories extends Model
         return $this->hasMany(Categories::class, 'idparent', 'IdCateg');
     }
 
-    
+
 
     public function scopeRoots($query)
     {
@@ -43,5 +45,12 @@ class Categories extends Model
     public function idtypecat()
     {
         return $this->belongsTo(\App\Models\TypeCategory::class, 'idtypecat', 'Idtypecat');
+    }
+
+    // protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        return MediaUrl::build($this->Image, 'categories');
     }
 }

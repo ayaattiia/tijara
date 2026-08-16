@@ -278,7 +278,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/customers/{id}/invoices', [InvoicesController::class, 'customerInvoices']);
 
     // ---- Profil / compte (uniquement le sien : pas d'index ni destroy ici) ----
-    Route::put('/profile', [UsersController::class, 'updateProfile']);
+    Route::post('/profile', [UsersController::class, 'updateProfile']);
     Route::get('/users/{users}', [UsersController::class, 'show']);
     Route::put('/users/{users}', [UsersController::class, 'update']);
     Route::get('/users/{id}/stats', [ViewController::class, 'userStats']);
@@ -452,4 +452,7 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::get('/admin/verifications', [UserVerificationController::class, 'index']);
     Route::patch('/admin/verifications/{user}/verify', [UserVerificationController::class, 'verify']);
     Route::patch('/admin/verifications/{user}/reject', [UserVerificationController::class, 'reject']);
+
+    Route::post('/brands/{brands}', [BrandsController::class, 'update']);
+    Route::post('/categories/{categories}', [CategoriesController::class, 'update']);
 });

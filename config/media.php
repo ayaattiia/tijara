@@ -40,6 +40,8 @@ return [
         'deals'          => 'assets/deals',
         'identity'       => 'assets/identity',
         'users_profiles' => 'assets/users/profiles',
+        'brands'     => 'assets/brands',
+        'categories' => 'assets/categories',
     ],
 
 ];

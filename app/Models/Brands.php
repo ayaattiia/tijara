@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\MediaUrl;
+
+
 use Illuminate\Database\Eloquent\Model;
 
 class Brands extends Model
@@ -17,4 +20,10 @@ class Brands extends Model
         'Active'
     ];
 
+    // protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        return MediaUrl::build($this->Image, 'brands');
+    }
 }

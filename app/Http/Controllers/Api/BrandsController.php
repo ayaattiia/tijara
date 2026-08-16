@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brands;
+use App\Support\HandlesMediaUpload;
 use Illuminate\Http\Request;
 
 class BrandsController extends Controller
 {
-    // Centralize the default/min/max so you can tweak them in one place
+    use HandlesMediaUpload;
+
     private const DEFAULT_PER_PAGE = 10;
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
@@ -30,8 +32,14 @@ class BrandsController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->all();
+        $data = $request->except('Image');
+
+        if ($request->hasFile('Image')) {
+            $data['Image'] = $this->storeMediaFile($request->file('Image'), 'brands');
+        }
+
         $item = Brands::create($data);
+
         return response()->json($item, 201);
     }
 
@@ -44,26 +52,29 @@ class BrandsController extends Controller
     public function update(Request $request, $brands)
     {
         $item = Brands::findOrFail($brands);
-        $item->update($request->all());
+        $data = $request->except('Image');
+
+        if ($request->hasFile('Image')) {
+            $this->deleteMediaFile($item->Image, 'brands');
+            $data['Image'] = $this->storeMediaFile($request->file('Image'), 'brands');
+        }
+
+        $item->update($data);
+
         return response()->json($item);
     }
 
     public function destroy($brands)
     {
         $item = Brands::findOrFail($brands);
+        $this->deleteMediaFile($item->Image, 'brands');
         $item->delete();
         return response()->json(null, 204);
     }
 
-    /**
-     * Resolve the per_page value from the request, falling back to a default
-     * and clamping it between MIN_PER_PAGE and MAX_PER_PAGE.
-     */
     private function resolvePerPage(Request $request): int
     {
         $perPage = (int) $request->query('per_page', self::DEFAULT_PER_PAGE);
-
-        // Guard against negatives or absurdly large values
         return max(self::MIN_PER_PAGE, min($perPage, self::MAX_PER_PAGE));
     }
 }
