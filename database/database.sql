@@ -2115,4 +2115,23 @@ ADD COLUMN `attachment_type` VARCHAR(50) NULL AFTER `attachment_path`;
 
 ALTER TABLE `messages` MODIFY `body` TEXT NULL;
 
+SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS messages;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+
+CREATE TABLE messages (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    room VARCHAR(255) NOT NULL DEFAULT 'general',
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NULL DEFAULT NULL,
+    updated_at TIMESTAMP NULL DEFAULT NULL,
+
+    CONSTRAINT messages_user_id_foreign
+        FOREIGN KEY (user_id)
+        REFERENCES users(IdUser)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;

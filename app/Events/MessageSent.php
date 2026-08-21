@@ -1,35 +1,43 @@
 <?php
-
+// app/Events/MessageSent.php
 namespace App\Events;
 
 use App\Models\Message;
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Queue\SerializesModels;
 
 class MessageSent implements ShouldBroadcast
 {
-    use InteractsWithSockets;
+    use InteractsWithSockets, SerializesModels;
 
     public function __construct(public Message $message) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('conversation.' . $this->message->conversation_id),
+            new PrivateChannel('chat.' . $this->message->room),
         ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'message.sent';
     }
 
     public function broadcastWith(): array
     {
         return [
             'id' => $this->message->id,
-            'body' => $this->message->body,
-            'attachment_url' => $this->message->attachment_url,
-            'attachment_type' => $this->message->attachment_type,
-            'user' => $this->message->user->only(['IdUser', 'name']),
-            'created_at' => $this->message->created_at,
+            'content' => $this->message->content,
+            'user' => [
+                'id' => $this->message->user->id,
+                'name' => $this->message->user->name,
+            ],
+            'created_at' => $this->message->created_at->toIso8601String(),
         ];
     }
 }

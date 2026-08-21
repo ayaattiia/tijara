@@ -1,35 +1,15 @@
 <?php
-
+// app/Models/Message.php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Users;
 
 class Message extends Model
 {
-    protected $fillable = ['conversation_id', 'user_id', 'body', 'attachment_path', 'attachment_type'];
+    protected $fillable = ['user_id', 'room', 'content'];
 
-    public function conversation(): BelongsTo
+    public function user()
     {
-        return $this->belongsTo(Conversation::class);
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(Users::class, 'user_id', 'IdUser');
-    }
-    // app/Models/Message.php
-    protected $appends = [
-        'attachment_url',
-    ];
-
-    public function getAttachmentUrlAttribute()
-    {
-        if (!$this->attachment_path) {
-            return null;
-        }
-
-        return asset($this->attachment_path);
+        return $this->belongsTo(User::class, 'user_id', 'IdUser');
     }
 }
