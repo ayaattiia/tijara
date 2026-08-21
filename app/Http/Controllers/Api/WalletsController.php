@@ -66,4 +66,19 @@ class WalletsController extends Controller
         // Guard against negatives or absurdly large values
         return max(self::MIN_PER_PAGE, min($perPage, self::MAX_PER_PAGE));
     }
+
+    /**
+     * GET /api/my-wallet
+     * The authenticated user's own wallet only — never exposes other users' balances.
+     */
+    public function myWallet(Request $request)
+    {
+        $wallet = Wallets::where('IdUser', $request->user()->IdUser)->first();
+
+        if (!$wallet) {
+            return response()->json(['message' => 'No wallet found for this account.'], 404);
+        }
+
+        return response()->json($wallet);
+    }
 }

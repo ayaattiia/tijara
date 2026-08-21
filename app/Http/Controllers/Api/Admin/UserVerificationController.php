@@ -35,6 +35,34 @@ class UserVerificationController extends Controller
     }
 
     /**
+     * GET /api/admin/verifications/{user}
+     * Full detail for ONE user's verification submission — photo,
+     * CIN/Patente number, business status, review state.
+     */
+    /**
+     * GET /api/admin/verifications/{user}
+     * Full detail for ONE user's verification submission:
+     * - DocumentType: "CIN" (individual) or "Patente" (business)
+     * - NumeroIdentite: the CIN number or Matricule Fiscal (ICNBusiness)
+     * - PhotoIdentite: the uploaded ID photo filename
+     */
+    public function show(Users $user)
+    {
+        $isBusiness = $user->IdentityDocumentType === 'patente';
+
+        return response()->json([
+            'IdUser'            => $user->IdUser,
+            'Username'          => $user->Username,
+            'Email'             => $user->Email,
+            'DocumentType'      => $user->IdentityDocumentType === 'patente' ? 'Patente' : 'CIN',
+            'NumeroIdentite'    => $isBusiness ? $user->ICNBusiness : $user->ICN,
+            'PhotoIdentite'     => $isBusiness ? $user->BusinessVerificationPicture : $user->IdentityPicture,
+            'IsVerified'        => (bool) $user->IsVerified,
+            'VerifiedAt'        => $user->VerifiedAt,
+            'VerifiedBy'        => $user->VerifiedBy,
+        ]);
+    }
+    /**
      * PATCH /api/admin/verifications/{user}/verify
      */
     public function verify(Request $request, Users $user)
@@ -53,7 +81,14 @@ class UserVerificationController extends Controller
 
         return response()->json([
             'message' => 'User has been verified.',
-            'data'    => $user->only(['IdUser', 'Username', 'Email', 'IsVerified', 'VerifiedAt']),
+            'data' => [
+                'IdUser' => $user->IdUser,
+                'Username' => $user->Username,
+                'Email' => $user->Email,
+                'IsVerified' => (bool) $user->IsVerified,
+                'VerifiedAt' => $user->VerifiedAt,
+                'VerifiedBy' => $user->VerifiedBy,
+            ]
         ]);
     }
 

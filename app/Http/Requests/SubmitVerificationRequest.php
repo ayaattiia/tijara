@@ -17,8 +17,9 @@ class SubmitVerificationRequest extends FormRequest
             // ICN number (individual) OR Matricule Fiscal (business) —
             // which one is decided in the controller based on the
             // logged-in user's existing IsBusinessAccount flag.
-            'identity_number' => ['required', 'string', 'max:50'],
-            'identity_photo'  => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            'identity_type'    => ['required', 'in:cin,patente'],
+            'identity_number'  => ['required', 'string', 'max:50'],
+            'identity_photo'   => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ];
     }
 

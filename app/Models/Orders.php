@@ -13,6 +13,7 @@ class Orders extends Model
     protected $fillable = [
         'IdUser',
         'IdDeal',
+        'Status',
         'IdState',
         'DateTimeCommand',
         'Active'

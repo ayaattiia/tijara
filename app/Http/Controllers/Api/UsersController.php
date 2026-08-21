@@ -113,6 +113,7 @@ class UsersController extends Controller
             'Telephone',
             'Location',
             'City',
+            'IdState',
         ]);
 
         if ($request->hasFile('ProfilePicture')) {

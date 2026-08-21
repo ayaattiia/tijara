@@ -19,7 +19,15 @@ class VerificationController extends Controller
     public function submit(SubmitVerificationRequest $request)
     {
         $user = $request->user();
-        $isBusiness = (bool) $user->IsBusinessAccount;
+        $identityType = strtolower(trim($request->input('identity_type')));
+
+        if (!in_array($identityType, ['cin', 'patente'])) {
+            return response()->json([
+                'message' => 'Invalid identity_type. Use cin or patente.'
+            ], 422);
+        }
+
+        $isBusiness = $identityType === 'patente';
 
         $numberField = $isBusiness ? 'ICNBusiness' : 'ICN';
         $photoField  = $isBusiness ? 'BusinessVerificationPicture' : 'IdentityPicture';
@@ -34,14 +42,12 @@ class VerificationController extends Controller
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension    = $file->getClientOriginalExtension();
         $safeName     = Str::slug($originalName); // strips spaces/accents/special chars
+        $filename = $safeName . '-' . Str::random(8) . '.' . $extension;
 
-        $filename = $safeName . '.' . $extension;
-        $counter  = 1;
+        // Extremely unlikely to collide, but guard anyway
         while (is_file($destination . DIRECTORY_SEPARATOR . $filename)) {
-            $filename = $safeName . '-' . $counter . '.' . $extension;
-            $counter++;
+            $filename = $safeName . '-' . Str::random(8) . '.' . $extension;
         }
-
         $file->move($destination, $filename);
 
         // Delete old photo for this same field if re-submitting
@@ -56,20 +62,24 @@ class VerificationController extends Controller
         $user->update([
             $numberField    => $request->input('identity_number'),
             $photoField     => $filename,
+            'IdentityDocumentType' => $identityType,
             'IsVerified'    => false,
             'VerifiedAt'    => null,
             'VerifiedBy'    => null,
         ]);
+        $user->save();
+        $user->refresh();
 
         return response()->json([
             'message' => 'Verification request submitted successfully. Pending admin review.',
-            'data'    => $user->only([
-                'IdUser',
-                $numberField,
-                $photoField,
-                'IsVerified',
-                'IsBusinessAccount',
-            ]),
+            'data' => [
+                'IdUser' => $user->IdUser,
+                'identity_number' => $request->input('identity_number'),
+                'identity_picture' => $filename,
+                'document_type' => strtoupper($identityType),
+                'IsVerified' => (bool) $user->IsVerified,
+                'IsBusinessAccount' => (bool) $user->IsBusinessAccount,
+            ],
         ], 200);
     }
 
@@ -86,6 +96,7 @@ class VerificationController extends Controller
             'is_business'      => $isBusiness,
             'identity_number'  => $isBusiness ? $user->ICNBusiness : $user->ICN,
             'verified_at'      => $user->VerifiedAt,
+            'document_type'    => $isBusiness ? 'Patente' : 'CIN',
         ]);
     }
 }

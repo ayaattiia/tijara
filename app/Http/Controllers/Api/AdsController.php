@@ -62,6 +62,16 @@ class AdsController extends Controller
                 ->where('AdsFeatureValues.IdFV', $request->query('IdFV'));
         }
 
+        $boostedIds = \App\Models\AdBoosts::currentlyActive()->pluck('IdAd');
+
+        if ($request->boolean('boosted')) {
+            $query->whereIn('Ads.IdAd', $boostedIds);
+        } else {
+            $query->orderByRaw(
+                'FIELD(Ads.IdAd, ' . ($boostedIds->isNotEmpty() ? $boostedIds->implode(',') : '0') . ') DESC'
+            );
+        }
+
         return response()->json($query->paginate($perPage));
     }
 

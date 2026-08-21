@@ -68,6 +68,10 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Api\Admin\UserVerificationController;
 use App\Http\Controllers\Api\VerificationController;
+use App\Http\Controllers\Api\PremiumController;
+use App\Http\Controllers\Api\Admin\PremiumAdminController;
+use App\Http\Controllers\Api\ReclamationsController;
+
 
 
 /*
@@ -195,12 +199,27 @@ Route::get('/ads/{ads}/related', [AdsController::class, 'related']);
 Route::get('/products/{products}/related', [ProductsController::class, 'related']);
 Route::get('/deals/{deals}/related', [DealsController::class, 'related']);
 
+// ---- Premium plans — public catalogue ----
+Route::get('/premium/plans', [PremiumController::class, 'plans']);
+// ---- Statut boost (public - tout le monde peut voir si c'est boosté) ----
+Route::get('/products/{products}/boost/status', [\App\Http\Controllers\Api\ProductBoostController::class, 'status']);
+Route::get('/ads/{ads}/boost/status', [\App\Http\Controllers\Api\AdBoostController::class, 'status']);
 
 /*
 |--------------------------------------------------------------------------
 | 2) USER CONNECTE — auth:api (IdRole = 1, mais commun a 2 et 3 aussi)
 |--------------------------------------------------------------------------
 */
+
+Route::middleware(['auth:api', 'entreprise'])->group(function () {
+    // MUST be registered before the /orders/{orders} wildcard route below
+    // (Section 2), otherwise "seller" gets matched as an {orders} id and
+    // this route is never reached (404).
+    Route::get('/orders/seller', [OrdersController::class, 'sellerOrders']);
+    Route::patch('/orders/{order}/accept', [OrdersController::class, 'accept']);
+    Route::patch('/orders/{order}/reject', [OrdersController::class, 'reject']);
+    Route::patch('/orders/{order}/ship', [OrdersController::class, 'markShipped']);
+});
 
 Route::middleware('auth:api')->group(function () {
 
@@ -256,7 +275,18 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
 
-    Route::apiResource('notifications', NotificationsController::class);
+    // Replace your old single line:  Route::apiResource('notifications', NotificationsController::class);
+    Route::get('/notifications', [NotificationsController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationsController::class, 'unreadCount']);
+    Route::patch('/notifications/read-all', [NotificationsController::class, 'markAllAsRead']);
+    Route::patch('/notifications/{id}/read', [NotificationsController::class, 'markAsRead']);
+    Route::get('/notifications/{notifications}', [NotificationsController::class, 'show']);
+    Route::delete('/notifications/{notifications}', [NotificationsController::class, 'destroy']);
+
+    // New — Reclamations (support tickets)
+    Route::get('/my-reclamations', [ReclamationsController::class, 'myReclamations']);
+    Route::post('/reclamations', [ReclamationsController::class, 'store']);
+    Route::get('/reclamations/{id}', [ReclamationsController::class, 'show']);
     Route::apiResource('user-follows', UserFollowsController::class);
     // index/show des tags publics (Section 1) ; ici creation/edition
     Route::apiResource('tags', TagsController::class)->only(['store', 'update', 'destroy']);
@@ -278,7 +308,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/customers/{id}/invoices', [InvoicesController::class, 'customerInvoices']);
 
     // ---- Profil / compte (uniquement le sien : pas d'index ni destroy ici) ----
-    Route::post('/profile', [UsersController::class, 'updateProfile']);
+    Route::put('/profile', [UsersController::class, 'updateProfile']);
     Route::get('/users/{users}', [UsersController::class, 'show']);
     Route::put('/users/{users}', [UsersController::class, 'update']);
     Route::get('/users/{id}/stats', [ViewController::class, 'userStats']);
@@ -292,6 +322,38 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/product-likes/{id}', [ProductLikesController::class, 'destroy']);
     Route::post('/deal-likes', [DealLikesController::class, 'store']);
     Route::delete('/deal-likes/{id}', [DealLikesController::class, 'destroy']);
+
+
+    // =========================================================
+    // PREMIUM ACCOUNT
+    // =========================================================
+
+    Route::get('/premium', [PremiumController::class, 'show']);
+
+    Route::get('/premium/status', [PremiumController::class, 'status']);
+
+    Route::post('/premium/subscribe', [PremiumController::class, 'subscribe']);
+
+    // Activate a specific pending subscription
+    Route::post('/premium/{subscription}/activate', [
+        PremiumController::class,
+        'activate'
+    ]);
+
+    // Cancel a specific subscription
+    Route::post('/premium/{subscription}/cancel', [
+        PremiumController::class,
+        'cancel'
+    ]);
+
+    // Premium subscription history
+    Route::get('/premium/history', [
+        PremiumController::class,
+        'history'
+    ]);
+
+    // ---- General authenticated section ----
+    Route::get('/my-wallet', [WalletsController::class, 'myWallet']);
 });
 
 
@@ -329,13 +391,16 @@ Route::middleware(['auth:api', 'entreprise'])->group(function () {
     // ---- Boost des annonces/produits (visibilite payante) ----
     Route::apiResource('boosts', BoostsController::class)->except(['index']);
 
+    Route::post('/products/{products}/boost', [\App\Http\Controllers\Api\ProductBoostController::class, 'store']);
+    Route::delete('/products/{products}/boost', [\App\Http\Controllers\Api\ProductBoostController::class, 'destroy']);
+    Route::post('/ads/{ads}/boost', [\App\Http\Controllers\Api\AdBoostController::class, 'store']);
+    Route::delete('/ads/{ads}/boost', [\App\Http\Controllers\Api\AdBoostController::class, 'destroy']);
+
     // ---- Commandes recues (cote vendeur) ----
     // NB (audit) : nouveau - le vendeur n'avait auparavant AUCUNE route
     // pour agir sur les commandes contenant ses propres produits/annonces.
-    Route::get('/orders/seller', [OrdersController::class, 'sellerOrders']);
-    Route::patch('/orders/{order}/accept', [OrdersController::class, 'accept']);
-    Route::patch('/orders/{order}/reject', [OrdersController::class, 'reject']);
-    Route::patch('/orders/{order}/ship', [OrdersController::class, 'markShipped']);
+    // (sellerOrders/accept/reject/ship sont enregistrées plus haut, avant
+    // Section 2, pour eviter un conflit de routage avec /orders/{orders})
 
     // ---- Livraisons liees a ses ventes ----
     Route::get('/deliveries/order/{idOrder}', [DeliveriesController::class, 'orderDeliveries']);
@@ -427,6 +492,8 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::apiResource('boosts', BoostsController::class)->only(['index']);
     Route::apiResource('prizes', PrizesController::class)->except(['index', 'show']);
     Route::apiResource('winners', WinnersController::class);
+    // ---- Admin-only section ----
+    Route::apiResource('wallets', WalletsController::class);
 
     // ---- Vendeurs (moderation globale) ----
     Route::apiResource('vendors', VendorsController::class)->only(['destroy']);
@@ -453,6 +520,35 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::patch('/admin/verifications/{user}/verify', [UserVerificationController::class, 'verify']);
     Route::patch('/admin/verifications/{user}/reject', [UserVerificationController::class, 'reject']);
 
-    Route::post('/brands/{brands}', [BrandsController::class, 'update']);
-    Route::post('/categories/{categories}', [CategoriesController::class, 'update']);
+
+    Route::delete('/admin/deals/{deals}', [DealsController::class, 'destroy']);
+
+    Route::get('/admin/premium/subscriptions', [PremiumAdminController::class, 'index']);
+
+    Route::get('/admin/premium/subscriptions/{subscription}', [PremiumAdminController::class, 'show']);
+
+    Route::patch('/admin/premium/subscriptions/{subscription}/activate', [
+        PremiumAdminController::class,
+        'activate'
+    ]);
+
+    Route::patch('/admin/premium/subscriptions/{subscription}/cancel', [
+        PremiumAdminController::class,
+        'cancel'
+    ]);
+
+    Route::patch('/admin/premium/subscriptions/{subscription}/expire', [
+        PremiumAdminController::class,
+        'expire'
+    ]);
+
+    // ---- Reclamations: admin moderation ----
+    Route::get('/reclamations', [ReclamationsController::class, 'index']);
+    Route::patch('/reclamations/{id}/reply', [ReclamationsController::class, 'reply']);
+    Route::patch('/reclamations/{id}/status', [ReclamationsController::class, 'updateStatus']);
+
+    // ---- Supervision des boosts actifs (produits + annonces) ----
+    Route::get('/admin/boosts/active', [\App\Http\Controllers\Api\Admin\BoostSupervisionController::class, 'index']);
+    Route::patch('/admin/product-boosts/{id}/deactivate', [\App\Http\Controllers\Api\Admin\BoostSupervisionController::class, 'deactivateProductBoost']);
+    Route::patch('/admin/ad-boosts/{id}/deactivate', [\App\Http\Controllers\Api\Admin\BoostSupervisionController::class, 'deactivateAdBoost']);
 });

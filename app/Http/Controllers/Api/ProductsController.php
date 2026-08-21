@@ -61,6 +61,19 @@ class ProductsController extends Controller
                 ->where('ProductsFeatureValues.IdFV', $request->query('IdFV'));
         }
 
+        // Les produits actuellement boostés remontent en premier - c'est
+        // tout l'intérêt commercial du boost. ?boosted=1 filtre pour ne
+        // montrer QUE les produits boostés (ex: page "mis en avant").
+        $boostedIds = \App\Models\ProductBoosts::currentlyActive()->pluck('IdProduct');
+
+        if ($request->boolean('boosted')) {
+            $query->whereIn('Products.IdProduct', $boostedIds);
+        } else {
+            $query->orderByRaw(
+                'FIELD(Products.IdProduct, ' . ($boostedIds->isNotEmpty() ? $boostedIds->implode(',') : '0') . ') DESC'
+            );
+        }
+
         return response()->json($query->paginate($perPage));
     }
 

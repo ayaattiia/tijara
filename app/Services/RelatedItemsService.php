@@ -57,7 +57,7 @@ class RelatedItemsService
         ],
     ];
 
-    public function relatedTo(Model $item, string $type, int $limit = 8): Collection
+    public function relatedTo(Model $item, string $type, int $limit = 5): Collection
     {
         $cfg = $this->config[$type] ?? null;
 

@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Users extends Authenticatable
 {
@@ -42,6 +43,7 @@ class Users extends Authenticatable
         'IsVerified',
         'IsPremuim',
         'PremiumExpiry',
+        'PremiumStartedAt',
         'IdentityPicture',
         'IsBusinessAccount',
         'ICNBusiness',
@@ -55,13 +57,23 @@ class Users extends Authenticatable
         'LastViewedAt',
         'ViewCount',
         'RecentlyViewed',
+        'IsVerified',
+        'VerifiedAt',
+        'VerifiedBy',
         'EmailConfirmed'
     ];
 
     protected $casts = [
         'RecentlyViewed' => 'array',
-        'LastViewedAt' => 'datetime'
+        'LastViewedAt' => 'datetime',
+        'IsVerified' => 'boolean',
+        'VerifiedAt' => 'datetime',
+        'IsPremuim' => 'boolean',
+        'PremiumStartedAt' => 'datetime',
+        'PremiumExpiry' => 'datetime',
     ];
+
+
     protected $hidden = [
         'Password',
         'RefreshToken',
@@ -102,5 +114,31 @@ class Users extends Authenticatable
             'IdUser',
             'id'
         );
+    }
+
+    /**
+     * All Premium subscriptions belonging to this user.
+     */
+    public function premiumSubscriptions(): HasMany
+    {
+        return $this->hasMany(
+            PremiumSubscriptions::class,
+            'IdUser',
+            'IdUser'
+        );
+    }
+
+    /**
+     * Current active Premium subscription.
+     */
+    public function activePremiumSubscription(): HasOne
+    {
+        return $this->hasOne(
+            PremiumSubscriptions::class,
+            'IdUser',
+            'IdUser'
+        )->where('Status', 'active')
+            ->where('PaymentStatus', 'paid')
+            ->where('EndDate', '>', now());
     }
 }
