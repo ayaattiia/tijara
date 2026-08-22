@@ -11,9 +11,17 @@ class VerificationController extends Controller
 {
     /**
      * POST /api/verification/submit
-     * Routes to the correct existing columns based on IsBusinessAccount:
-     * - individual: ICN + IdentityPicture
-     * - business:   ICNBusiness + BusinessVerificationPicture
+     * Routes to the correct existing columns based on identity_type sent
+     * by the client:
+     * - "cin"     -> ICN + IdentityPicture
+     * - "patente" -> ICNBusiness + BusinessVerificationPicture
+     *
+     * IMPORTANT: IsBusinessAccount is ALSO updated here to match
+     * identity_type. It's the single source of truth every other endpoint
+     * (status, show, verify, reject) relies on to know which pair of
+     * columns to read - if it's not kept in sync here, those endpoints
+     * silently look at the wrong fields.
+     *
      * Sets IsVerified back to false until an admin reviews it.
      */
     public function submit(SubmitVerificationRequest $request)
@@ -34,17 +42,19 @@ class VerificationController extends Controller
 
         $file = $request->file('identity_photo');
         $destination = public_path(config('media.paths.identity'));
+        if (! is_dir($destination)) {
+            mkdir($destination, 0755, true);
+        }
 
         // Keep the ORIGINAL uploaded filename (sanitized), instead of a
         // random UUID. If a file with that name already exists, append
-        // -1, -2, etc. so two different users' "photo.jpg" never collide
-        // or overwrite each other.
+        // a random suffix so two different users' "photo.jpg" never
+        // collide or overwrite each other.
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension    = $file->getClientOriginalExtension();
         $safeName     = Str::slug($originalName); // strips spaces/accents/special chars
         $filename = $safeName . '-' . Str::random(8) . '.' . $extension;
 
-        // Extremely unlikely to collide, but guard anyway
         while (is_file($destination . DIRECTORY_SEPARATOR . $filename)) {
             $filename = $safeName . '-' . Str::random(8) . '.' . $extension;
         }
@@ -60,24 +70,24 @@ class VerificationController extends Controller
         }
 
         $user->update([
-            $numberField    => $request->input('identity_number'),
-            $photoField     => $filename,
-            'IdentityDocumentType' => $identityType,
-            'IsVerified'    => false,
-            'VerifiedAt'    => null,
-            'VerifiedBy'    => null,
+            $numberField        => $request->input('identity_number'),
+            $photoField         => $filename,
+            'IsBusinessAccount' => $isBusiness ? 1 : 0, // <- keeps every other endpoint consistent
+            'IsVerified'        => false,
+            'VerifiedAt'        => null,
+            'VerifiedBy'        => null,
         ]);
-        $user->save();
+
         $user->refresh();
 
         return response()->json([
             'message' => 'Verification request submitted successfully. Pending admin review.',
             'data' => [
-                'IdUser' => $user->IdUser,
-                'identity_number' => $request->input('identity_number'),
-                'identity_picture' => $filename,
-                'document_type' => strtoupper($identityType),
-                'IsVerified' => (bool) $user->IsVerified,
+                'IdUser'            => $user->IdUser,
+                'identity_number'   => $request->input('identity_number'),
+                'identity_picture'  => $filename,
+                'document_type'     => strtoupper($identityType),
+                'IsVerified'        => (bool) $user->IsVerified,
                 'IsBusinessAccount' => (bool) $user->IsBusinessAccount,
             ],
         ], 200);
@@ -95,6 +105,7 @@ class VerificationController extends Controller
             'is_verified'      => (bool) $user->IsVerified,
             'is_business'      => $isBusiness,
             'identity_number'  => $isBusiness ? $user->ICNBusiness : $user->ICN,
+            'identity_picture' => $isBusiness ? $user->BusinessVerificationPicture : $user->IdentityPicture,
             'verified_at'      => $user->VerifiedAt,
             'document_type'    => $isBusiness ? 'Patente' : 'CIN',
         ]);
