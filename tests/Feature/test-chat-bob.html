@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <h2>Test Chat — aya — Room: general</h2>
-    <title>Test Chat WebSocket</title>
+    <title>Test Chat — bob</title>
     <script src="https://cdn.jsdelivr.net/npm/pusher-js@8/dist/web/pusher.min.js"></script>
 </head>
 <body>
-    <h2>Test Chat — Room: general</h2>
+    <h2>Test Chat — Alice</h2>
     <ul id="messages"></ul>
-
     <input type="text" id="content" placeholder="Message...">
     <button onclick="sendMessage()">Envoyer</button>
 
     <script>
-        // COLLE_TON_TOKEN_ICI 
         const TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIwMWEwMGMxZS0wMzc5LTcwYTctYmFlOC0yMmNlYzI5NzdjOTYiLCJqdGkiOiI4YWE2NTEwYmU5MDU2Nzg0MWQ2OWZjOGJkZDZkZGFlNGMxZGE5MTQzN2U2MmQ3NDZjNjIzZWNhMTIyY2VhZjYzZWE1NTYyNzQwY2Y1YmJjZCIsImlhdCI6MTc4NzM5NzEwOS44MTU1OTYsIm5iZiI6MTc4NzM5NzEwOS44MTU1OTgsImV4cCI6MTgxODkzMzEwOS43ODcwNjYsInN1YiI6IjM5Iiwic2NvcGVzIjpbXX0.eo8y-QphT2Bnyc_48A0ldElPswVs1shLppF1yQBs_Lbi8sLalEogd85VYKzx84_eDTTV9reiXEbLOnq-E_AUiq8k5IPZ-jluJqpbPZEdhotNkn3_5julojz5UjBRMpbt0rgsSccxiyKUnXXaoF3VlCijjIARljA6yjIAQ68NiOXKNo3kRLvefCHUmdtHYxWWbpMb-sqLr_DaZ9w5G8EcMBpaU8zVi88eugVh4MQd_P2hoVPoSxxT6WOlb4cREGHXoLdNLE_od7FYqJMPn4ihMxgLwRMQ9uIIfDcM9S4Cq6TuKZLYWre0U687r0YMjSnFPEw3lvGK7NWGokMi03UPVAqRLHopGzeCrARA4lH_FjP7bYIrVLqk-Q4srtdqZWl2TEb0w4essHUTnvNysQ7WRVvwpydQ_RtrhvWxpn8RmkwqgNXyuc9-y-UZW6cwcbGTbXc5zC9FMml4Bt14pYaZ6pKotkRk9Cez9lhS9aK1LFBaRcp8tGIvRMBpHajyoNB6xhFWQ2H5HKga4UTfXKvGe9daHq985V94syWgCpgbfL5qcTbfEd7xjyTg9wPjPpCF08JW8C9BvQK3OOxHizktHP4w8DOO_rmCy4CgT2cxEuCVpBbeGO8g2cr1JpoagbbofVRlTno6120qm6X_wlJrz4PJrh4RE3NScB2iGctOlA4';
-        const API_URL = 'http://localhost:8000'; // ajuste selon ton `php artisan serve`
+        const CONVERSATION_ID = 6; // ← l'id retourné par ta création de conversation
+        const API_URL = 'http://localhost:8000';
 
         Pusher.logToConsole = true;
 
-        const pusher = new Pusher('chatkey', { // = REVERB_APP_KEY dans ton .env
+        const pusher = new Pusher('chatkey', {
             wsHost: 'localhost',
             wsPort: 8080,
             forceTLS: false,
@@ -34,10 +32,7 @@
                             'Authorization': `Bearer ${TOKEN}`,
                             'Accept': 'application/json',
                         },
-                        body: JSON.stringify({
-                            socket_id: socketId,
-                            channel_name: channel.name,
-                        }),
+                        body: JSON.stringify({ socket_id: socketId, channel_name: channel.name }),
                     })
                     .then(res => res.json())
                     .then(data => callback(false, data))
@@ -46,14 +41,14 @@
             })
         });
 
-        const channel = pusher.subscribe('private-chat.general');
+        const channel = pusher.subscribe(`private-conversation.${CONVERSATION_ID}`);
 
         channel.bind('pusher:subscription_succeeded', () => {
-            console.log('✅ Abonné au canal avec succès');
+            console.log('✅ Abonné à la conversation', CONVERSATION_ID);
         });
 
         channel.bind('pusher:subscription_error', (err) => {
-            console.error('❌ Erreur d\'abonnement:', err);
+            console.error('❌ Erreur abonnement:', err);
         });
 
         channel.bind('.message.sent', (data) => {
@@ -64,17 +59,23 @@
 
         function sendMessage() {
             const content = document.getElementById('content').value;
-            fetch(`${API_URL}/api/chat/messages`, {
+            fetch(`${API_URL}/api/conversations/${CONVERSATION_ID}/messages`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${TOKEN}`,
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({ content, room: 'general' }),
+                body: JSON.stringify({ content }),
             })
             .then(res => res.json())
-            .then(data => console.log('Message envoyé:', data));
+            .then(data => {
+                console.log('Message envoyé:', data);
+                const li = document.createElement('li');
+                li.textContent = `Moi: ${content}`;
+                document.getElementById('messages').appendChild(li);
+                document.getElementById('content').value = '';
+            });
         }
     </script>
 </body>

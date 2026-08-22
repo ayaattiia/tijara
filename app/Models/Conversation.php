@@ -19,7 +19,7 @@ class Conversation extends Model
             Users::class,
             'conversation_user',
             'conversation_id',
-            'user_id',
+            'idUser',
             'id',
             'IdUser'
         );

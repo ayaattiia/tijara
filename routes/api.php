@@ -65,7 +65,6 @@ use App\Http\Controllers\Api\WishlistDealsController;
 use App\Http\Controllers\VitrineController;
 use App\Http\Controllers\Api\ViewController;
 use App\Http\Controllers\Api\MessageController;
-use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Api\Admin\UserVerificationController;
 use App\Http\Controllers\Api\VerificationController;
 use App\Http\Controllers\Api\PremiumController;
@@ -73,6 +72,8 @@ use App\Http\Controllers\Api\Admin\PremiumAdminController;
 use App\Http\Controllers\Api\ReclamationsController;
 
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\ConversationController;
+
 
 
 
@@ -125,6 +126,11 @@ Route::middleware('auth:api')->group(function () {
     
     Route::get('/chat/{room?}', [ChatController::class, 'index'])->name('chat.index');
 
+    //conversations
+    Route::get('/conversations', [ConversationController::class, 'index']);
+    Route::post('/conversations', [ConversationController::class, 'store']);
+    Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages']);
+    Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage']);
 });
 
 // ---- Authentification ----
@@ -283,10 +289,10 @@ Route::middleware('auth:api')->group(function () {
     // Route::delete('/chat-messages/{chat_messages}', [ChatMessagesController::class, 'destroy']);
 
     // ---- Conversations / messages (acheteur <-> vendeur) ----
-    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
-    Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
-    Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
-    Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+    // Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
+    // Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    // Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+    // Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
 
     // Replace your old single line:  Route::apiResource('notifications', NotificationsController::class);
     Route::get('/notifications', [NotificationsController::class, 'index']);

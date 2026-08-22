@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // database/migrations/xxxx_create_conversation_user_table.php
         Schema::create('conversation_user', function (Blueprint $table) {
             $table->id();
             $table->foreignId('conversation_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('idUser');
+            $table->foreign('idUser')->references('IdUser')->on('Users')->cascadeOnDelete();
             $table->timestamps();
         });
     }
