@@ -532,6 +532,7 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::get('/admin/verifications', [UserVerificationController::class, 'index']);
     Route::patch('/admin/verifications/{user}/verify', [UserVerificationController::class, 'verify']);
     Route::patch('/admin/verifications/{user}/reject', [UserVerificationController::class, 'reject']);
+    Route::get('/admin/verifications/{user}', [UserVerificationController::class, 'show']);
 
 
     Route::delete('/admin/deals/{deals}', [DealsController::class, 'destroy']);
