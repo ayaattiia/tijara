@@ -72,6 +72,8 @@ use App\Http\Controllers\Api\PremiumController;
 use App\Http\Controllers\Api\Admin\PremiumAdminController;
 use App\Http\Controllers\Api\ReclamationsController;
 
+use App\Http\Controllers\Api\ChatController;
+
 
 
 /*
@@ -117,6 +119,13 @@ use App\Http\Controllers\Api\ReclamationsController;
 | 1) PUBLIC — pas d'authentification requise
 |--------------------------------------------------------------------------
 */
+// routes/web.php ou routes/api.php
+Route::middleware('auth:api')->group(function () {
+    Route::post('/chat/messages', [ChatController::class, 'store'])->name('chat.store');
+    
+    Route::get('/chat/{room?}', [ChatController::class, 'index'])->name('chat.index');
+
+});
 
 // ---- Authentification ----
 Route::post('/register', [AuthController::class, 'register']);
@@ -211,6 +220,7 @@ Route::get('/ads/{ads}/boost/status', [\App\Http\Controllers\Api\AdBoostControll
 |--------------------------------------------------------------------------
 */
 
+
 Route::middleware(['auth:api', 'entreprise'])->group(function () {
     // MUST be registered before the /orders/{orders} wildcard route below
     // (Section 2), otherwise "seller" gets matched as an {orders} id and
@@ -225,6 +235,9 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+
+    // Route::post('/chat/messages', [ChatController::class, 'store'])->name('chat.store');
+    // Route::get('/chat/{room?}', [ChatController::class, 'index'])->name('chat.index');
 
     // ---- Identity verification (CIN / Patente) ----
     Route::post('/verification/submit', [VerificationController::class, 'submit']);

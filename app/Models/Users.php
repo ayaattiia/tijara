@@ -4,13 +4,16 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Users extends Authenticatable
 {
-    use HasApiTokens;
+    use HasApiTokens , HasFactory;
+
 
     protected $table = 'Users';
     protected $primaryKey = 'IdUser';

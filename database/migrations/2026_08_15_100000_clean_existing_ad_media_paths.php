@@ -1,7 +1,7 @@
 ﻿<?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * DATA migration (no schema change). Cleans up existing rows in the ads
@@ -14,14 +14,16 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('ads')) {
+            return;
+        }
+
         DB::table('ads')->orderBy('IdAd')->chunkById(100, function ($ads) {
             foreach ($ads as $ad) {
                 $updates = [];
-
                 if (! empty($ad->ImageAd) && str_contains($ad->ImageAd, '/')) {
                     $updates['ImageAd'] = basename($ad->ImageAd);
                 }
-
                 if (! empty($ad->VideoAd)) {
                     $videos = json_decode($ad->VideoAd, true);
                     if (is_array($videos)) {
@@ -34,14 +36,12 @@ return new class extends Migration
                         }
                     }
                 }
-
                 if (! empty($updates)) {
                     DB::table('ads')->where('IdAd', $ad->IdAd)->update($updates);
                 }
             }
         }, 'IdAd');
     }
-
     public function down(): void
     {
         // Not reversible — original full paths aren't recoverable.

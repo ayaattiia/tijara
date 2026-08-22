@@ -1,4 +1,5 @@
 <?php
+
 // app/Events/MessageSent.php
 namespace App\Events;
 
@@ -28,16 +29,16 @@ class MessageSent implements ShouldBroadcast
         return 'message.sent';
     }
 
-    public function broadcastWith(): array
-    {
-        return [
-            'id' => $this->message->id,
-            'content' => $this->message->content,
-            'user' => [
-                'id' => $this->message->user->id,
-                'name' => $this->message->user->name,
-            ],
-            'created_at' => $this->message->created_at->toIso8601String(),
-        ];
-    }
+public function broadcastWith(): array
+{
+    return [
+        'id' => $this->message->id,
+        'content' => $this->message->content,
+        'user' => [
+            'id' => $this->message->user->IdUser,
+            'name' => $this->message->user->FirstName,
+        ],
+        'created_at' => $this->message->created_at->toIso8601String(),
+    ];
+}
 }
