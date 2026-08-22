@@ -5,584 +5,207 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Orders;
 use App\Models\OrderDetails;
-use App\Models\Products;
-use App\Models\Deals;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+
 
 class OrdersController extends Controller
 {
     private const DEFAULT_PER_PAGE = 10;
-    private const MIN_PER_PAGE = 1;
+    private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
 
-    private const VALID_STATUSES = [
-        'pending',
-        'accepted',
-        'rejected',
-        'shipped',
-        'delivered',
-        'cancelled'
-    ];
+    public function __construct(private NotificationService $notifications) {}
 
-    /**
-     * GET /api/orders
-     */
+    private const VALID_STATUSES = ['pending', 'accepted', 'rejected', 'shipped', 'delivered', 'cancelled'];
+
     public function index(Request $request)
     {
         $perPage = $this->resolvePerPage($request);
 
         $query = Orders::query();
 
-        /*
-         * Admin sees all orders.
-         * Normal user sees only his orders.
-         */
+        // Admins (Section 4 apiResource) see everything. Regular buyers
+        // (Section 2) only ever see their own orders here.
         if ($request->user()->IdRole != 3) {
-            $query->where(
-                'IdUser',
-                $request->user()->IdUser
-            );
+            $query->where('IdUser', $request->user()->IdUser);
         }
 
         if ($request->filled('Status')) {
-            $query->where(
-                'Status',
-                $request->query('Status')
-            );
+            $query->where('Status', $request->query('Status'));
         }
 
-        return response()->json(
-            $query
-                ->latest('IdOrder')
-                ->paginate($perPage)
-        );
+        return response()->json($query->latest('IdOrder')->paginate($perPage));
     }
 
     /**
      * POST /api/orders
-     *
-     * Creates the order.
-     *
-     * Stock is NOT decreased here.
-     * Stock is decreased when OrderDetails are created.
+     * Buyer places an order. IdUser is always taken from the authenticated
+     * token, never trusted from the request body.
      */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'IdDeal' => 'nullable|exists:Deals,IdDeal',
+            'IdDeal'  => 'nullable|exists:Deals,IdDeal',
             'IdState' => 'nullable|exists:States,IdState',
         ]);
 
         $item = Orders::create([
-            'IdUser' => $request->user()->IdUser,
-            'IdDeal' => $data['IdDeal'] ?? null,
-            'IdState' => $data['IdState'] ?? null,
-            'Status' => 'pending',
+            'IdUser'          => $request->user()->IdUser,
+            'IdDeal'          => $data['IdDeal'] ?? null,
+            'IdState'         => $data['IdState'] ?? null,
+            'Status'          => 'pending',
             'DateTimeCommand' => now(),
-            'Active' => 1,
+            'Active'          => 1,
         ]);
 
-        return response()->json(
-            $item,
-            201
-        );
+        return response()->json($item, 201);
     }
 
-    /**
-     * GET /api/orders/{id}
-     */
     public function show($orders)
     {
-        $item = Orders::with(
-            'details.product'
-        )->findOrFail($orders);
-
+        $item = Orders::with('details.product')->findOrFail($orders);
         return response()->json($item);
     }
 
-    /**
-     * PATCH /api/orders/{id}
-     *
-     * General update.
-     *
-     * Status cannot be changed here.
-     */
     public function update(Request $request, $orders)
     {
         $item = Orders::findOrFail($orders);
-
-        $item->update(
-            $request->except([
-                'IdUser',
-                'Status',
-                'IdDeal'
-            ])
-        );
-
+        $item->update($request->except(['IdUser', 'Status'])); // Status changes only via accept/reject/ship/cancel/admin
         return response()->json($item);
     }
 
-    /**
-     * DELETE /api/orders/{id}
-     *
-     * Do not allow deleting orders because
-     * their stock may already have been reserved.
-     */
     public function destroy($orders)
     {
-        return response()->json([
-            'success' => false,
-            'message' =>
-            'Orders cannot be deleted directly. Cancel the order instead.'
-        ], 422);
+        $item = Orders::findOrFail($orders);
+        $item->delete();
+        return response()->json(null, 204);
     }
 
     /**
      * PATCH /api/orders/{order}/cancel
-     *
-     * Buyer cancels a pending order.
-     *
-     * pending
-     *    ↓
-     * cancelled
-     *
-     * AND stock is restored.
+     * Buyer cancels their own order - only while still 'pending'.
      */
     public function cancel(Request $request, $order)
     {
-        return DB::transaction(function () use ($request, $order) {
+        $item = Orders::findOrFail($order);
 
-            /*
-             * LOCK THE ORDER.
-             *
-             * This prevents two requests from cancelling
-             * the same order at the same time.
-             */
-            $item = Orders::lockForUpdate()
-                ->with('details')
-                ->findOrFail($order);
+        if ($item->IdUser != $request->user()->IdUser) {
+            return response()->json(['message' => 'This is not your order.'], 403);
+        }
 
-            /*
-             * Only the buyer can cancel.
-             */
-            if (
-                $item->IdUser !=
-                $request->user()->IdUser
-            ) {
-                return response()->json([
-                    'message' =>
-                    'This is not your order.'
-                ], 403);
-            }
+        if ($item->Status !== 'pending') {
+            return response()->json(['message' => "Order can only be cancelled while still pending (current: {$item->Status})."], 422);
+        }
 
-            /*
-             * Only pending orders can be cancelled.
-             */
-            if ($item->Status !== 'pending') {
-                return response()->json([
-                    'message' =>
-                    "Order can only be cancelled while still pending " .
-                        "(current: {$item->Status})."
-                ], 422);
-            }
+        $item->update(['Status' => 'cancelled']);
 
-            /*
-             * RESTORE STOCK FIRST.
-             */
-            $this->restoreOrderStock($item);
+        // Notifie le(s) vendeur(s) concerné(s) par cette commande
+        $item->load('details.product');
+        $sellerIds = $item->details->pluck('product.IdUser')->filter()->unique();
+        foreach ($sellerIds as $sellerId) {
+            $this->notifications->send(
+                $sellerId,
+                'Commande annulée',
+                "La commande #{$item->IdOrder} a été annulée par l'acheteur.",
+                NotificationService::TYPE_ORDER_CANCELLED
+            );
+        }
 
-            /*
-             * Then change status.
-             */
-            $item->Status = 'cancelled';
-            $item->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Order cancelled and stock restored.',
-                'data' => $item->load('details.product')
-            ]);
-        });
+        return response()->json(['message' => 'Order cancelled.', 'data' => $item]);
     }
 
     /**
      * GET /api/orders/seller
+     * Vendor's received orders - any order containing at least one of
+     * their own products.
      */
     public function sellerOrders(Request $request)
     {
         $perPage = $this->resolvePerPage($request);
-
         $sellerId = $request->user()->IdUser;
 
-        $query = Orders::whereHas(
-            'details.product',
-            function ($q) use ($sellerId) {
-                $q->where(
-                    'IdUser',
-                    $sellerId
-                );
-            }
-        )->with([
-            'details' => function ($q) use ($sellerId) {
-
-                $q->whereHas(
-                    'product',
-                    fn($p) =>
-                    $p->where(
-                        'IdUser',
-                        $sellerId
-                    )
-                )->with('product');
-            }
-        ]);
+        $query = Orders::whereHas('details.product', function ($q) use ($sellerId) {
+            $q->where('IdUser', $sellerId);
+        })->with(['details' => function ($q) use ($sellerId) {
+            $q->whereHas('product', fn($p) => $p->where('IdUser', $sellerId))->with('product');
+        }]);
 
         if ($request->filled('Status')) {
-            $query->where(
-                'Status',
-                $request->query('Status')
-            );
+            $query->where('Status', $request->query('Status'));
         }
 
-        return response()->json(
-            $query
-                ->latest('IdOrder')
-                ->paginate($perPage)
-        );
+        return response()->json($query->latest('IdOrder')->paginate($perPage));
     }
 
     /**
      * PATCH /api/orders/{order}/accept
+     * Vendor accepts an order containing at least one of their products.
      */
-    public function accept(
-        Request $request,
-        $order
-    ) {
-        return $this->transitionAsSeller(
-            $request,
-            $order,
-            'pending',
-            'accepted'
-        );
+    public function accept(Request $request, $order)
+    {
+        return $this->transitionAsSeller($request, $order, 'pending', 'accepted');
     }
 
     /**
      * PATCH /api/orders/{order}/reject
-     *
-     * pending
-     *    ↓
-     * rejected
-     *
-     * Stock is restored.
      */
-    public function reject(
-        Request $request,
-        $order
-    ) {
-        return DB::transaction(function () use (
-            $request,
-            $order
-        ) {
-
-            /*
-             * Lock order to prevent double processing.
-             */
-            $item = Orders::lockForUpdate()
-                ->with('details.product')
-                ->findOrFail($order);
-
-            $sellerId =
-                $request->user()->IdUser;
-
-            /*
-             * Verify seller owns at least one
-             * product in this order.
-             */
-            $ownsAProduct =
-                $item->details->contains(
-                    function ($detail) use ($sellerId) {
-
-                        return $detail->product &&
-                            $detail->product->IdUser ==
-                            $sellerId;
-                    }
-                );
-
-            if (!$ownsAProduct) {
-                return response()->json([
-                    'message' =>
-                    'This order does not contain any of your products.'
-                ], 403);
-            }
-
-            /*
-             * Only pending orders can be rejected.
-             */
-            if ($item->Status !== 'pending') {
-                return response()->json([
-                    'message' =>
-                    "Order must be 'pending' to be rejected " .
-                        "(current: {$item->Status})."
-                ], 422);
-            }
-
-            /*
-             * RESTORE STOCK.
-             */
-            $this->restoreOrderStock($item);
-
-            /*
-             * Change status.
-             */
-            $item->Status = 'rejected';
-            $item->save();
-
-            return response()->json([
-                'success' => true,
-                'message' =>
-                'Order rejected and stock restored.',
-                'data' =>
-                $item->load('details.product')
-            ]);
-        });
+    public function reject(Request $request, $order)
+    {
+        return $this->transitionAsSeller($request, $order, 'pending', 'rejected');
     }
 
     /**
      * PATCH /api/orders/{order}/ship
      */
-    public function markShipped(
-        Request $request,
-        $order
-    ) {
-        return $this->transitionAsSeller(
-            $request,
-            $order,
-            'accepted',
-            'shipped'
-        );
-    }
-
-    /**
-     * Seller status transition.
-     */
-    private function transitionAsSeller(
-        Request $request,
-        $order,
-        string $fromStatus,
-        string $toStatus
-    ) {
-        return DB::transaction(function () use (
-            $request,
-            $order,
-            $fromStatus,
-            $toStatus
-        ) {
-
-            /*
-             * Lock the order.
-             */
-            $item = Orders::lockForUpdate()
-                ->with('details.product')
-                ->findOrFail($order);
-
-            $sellerId =
-                $request->user()->IdUser;
-
-            /*
-             * Verify seller owns a product
-             * in this order.
-             */
-            $ownsAProduct =
-                $item->details->contains(
-                    function ($detail) use ($sellerId) {
-
-                        return $detail->product &&
-                            $detail->product->IdUser ==
-                            $sellerId;
-                    }
-                );
-
-            if (!$ownsAProduct) {
-                return response()->json([
-                    'message' =>
-                    'This order does not contain any of your products.'
-                ], 403);
-            }
-
-            /*
-             * Verify correct transition.
-             */
-            if ($item->Status !== $fromStatus) {
-
-                return response()->json([
-                    'message' =>
-                    "Order must be '{$fromStatus}' " .
-                        "to move to '{$toStatus}' " .
-                        "(current: {$item->Status}).",
-                ], 422);
-            }
-
-            /*
-             * accepted / shipped do NOT restore stock.
-             */
-            $item->Status = $toStatus;
-            $item->save();
-
-            return response()->json([
-                'success' => true,
-                'message' =>
-                "Order marked as {$toStatus}.",
-                'data' =>
-                $item->load('details.product')
-            ]);
-        });
-    }
-
-    /**
-     * RESTORE STOCK FOR AN ORDER.
-     *
-     * This method is used only when:
-     *
-     * pending → cancelled
-     *
-     * OR
-     *
-     * pending → rejected
-     *
-     * Product:
-     *     QuantityProduct += ordered quantity
-     *
-     * Deal:
-     *     quantity += ordered quantity
-     */
-    private function restoreOrderStock(Orders $order)
+    public function markShipped(Request $request, $order)
     {
-        /*
-         * Get all order details.
-         */
-        $details = OrderDetails::where(
-            'IdOrder',
-            $order->IdOrder
-        )->get();
-
-        /*
-         * Nothing to restore.
-         */
-        if ($details->isEmpty()) {
-            return;
-        }
-
-        /*
-         * DEAL ORDER
-         */
-        if (!empty($order->IdDeal)) {
-
-            $deal = Deals::lockForUpdate()
-                ->find($order->IdDeal);
-
-            if (!$deal) {
-                return;
-            }
-
-            /*
-             * Sum all quantities belonging to
-             * this order.
-             */
-            $totalQuantity =
-                $details->sum('Quantity');
-
-            /*
-             * Restore deal stock.
-             */
-            $deal->quantity =
-                (int) $deal->quantity +
-                (int) $totalQuantity;
-
-            /*
-             * Reactivate the deal if:
-             *
-             * - stock > 0
-             * - date has not expired
-             */
-            $expired = false;
-
-            if (!empty($deal->dateEnd)) {
-                try {
-                    $expired =
-                        now()->greaterThan(
-                            \Carbon\Carbon::parse(
-                                $deal->dateEnd
-                            )
-                        );
-                } catch (\Exception $e) {
-                    $expired = false;
-                }
-            }
-
-            if (
-                (int) $deal->quantity > 0 &&
-                !$expired
-            ) {
-                $deal->active = 1;
-            }
-
-            $deal->save();
-
-            return;
-        }
-
-        /*
-         * NORMAL PRODUCTS
-         *
-         * Each detail can refer to a different product.
-         */
-        foreach ($details as $detail) {
-
-            $product = Products::lockForUpdate()
-                ->find($detail->IdProduct);
-
-            if (!$product) {
-                continue;
-            }
-
-            /*
-             * Restore quantity.
-             */
-            $product->QuantityProduct =
-                (int) $product->QuantityProduct +
-                (int) $detail->Quantity;
-
-            /*
-             * Product becomes active again
-             * because stock is available.
-             */
-            if (
-                (int) $product->QuantityProduct > 0
-            ) {
-                $product->Active = 1;
-            }
-
-            $product->save();
-        }
+        return $this->transitionAsSeller($request, $order, 'accepted', 'shipped');
     }
 
-    /**
-     * Pagination.
-     */
-    private function resolvePerPage(
-        Request $request
-    ): int {
-        $perPage = (int) $request->query(
-            'per_page',
-            self::DEFAULT_PER_PAGE
-        );
+    private function transitionAsSeller(Request $request, $order, string $fromStatus, string $toStatus)
+    {
+        $item = Orders::with('details.product')->findOrFail($order);
+        $sellerId = $request->user()->IdUser;
 
-        return max(
-            self::MIN_PER_PAGE,
-            min(
-                $perPage,
-                self::MAX_PER_PAGE
-            )
-        );
+        $ownsAProduct = $item->details->contains(function ($detail) use ($sellerId) {
+            return $detail->product && $detail->product->IdUser == $sellerId;
+        });
+
+        if (! $ownsAProduct) {
+            return response()->json(['message' => 'This order does not contain any of your products.'], 403);
+        }
+
+        if ($item->Status !== $fromStatus) {
+            return response()->json([
+                'message' => "Order must be '{$fromStatus}' to move to '{$toStatus}' (current: {$item->Status}).",
+            ], 422);
+        }
+
+        $item->update(['Status' => $toStatus]);
+
+        $labels = [
+            'accepted' => ['Commande acceptée', 'Votre commande #%d a été acceptée par le vendeur.', NotificationService::TYPE_ORDER_ACCEPTED],
+            'rejected' => ['Commande refusée', 'Votre commande #%d a été refusée par le vendeur.', NotificationService::TYPE_ORDER_REJECTED],
+            'shipped'  => ['Commande expédiée', 'Votre commande #%d a été expédiée.', NotificationService::TYPE_ORDER_SHIPPED],
+        ];
+
+        if (isset($labels[$toStatus])) {
+            [$title, $descriptionFormat, $type] = $labels[$toStatus];
+            $this->notifications->send(
+                $item->IdUser,
+                $title,
+                sprintf($descriptionFormat, $item->IdOrder),
+                $type
+            );
+        }
+
+        return response()->json(['message' => "Order marked as {$toStatus}.", 'data' => $item]);
+    }
+
+    private function resolvePerPage(Request $request): int
+    {
+        $perPage = (int) $request->query('per_page', self::DEFAULT_PER_PAGE);
+        return max(self::MIN_PER_PAGE, min($perPage, self::MAX_PER_PAGE));
     }
 }

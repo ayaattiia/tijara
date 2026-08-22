@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\AdBoosts;
 use App\Models\Ads;
 use App\Services\BoostPurchaseService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class AdBoostController extends Controller
 {
-    public function __construct(private BoostPurchaseService $boostPurchase) {}
+    public function __construct(
+        private BoostPurchaseService $boostPurchase,
+        private NotificationService $notifications
+    ) {}
 
     /**
      * POST /api/ads/{ads}/boost
@@ -42,6 +46,13 @@ class AdBoostController extends Controller
             'EndDate'   => $result['end'],
             'Active'    => true,
         ]);
+
+        $this->notifications->send(
+            $request->user()->IdUser,
+            'Boost activé',
+            "\"{$item->TitleAd}\" est boosté jusqu'au {$result['end']->format('d/m/Y')}.",
+            NotificationService::TYPE_BOOST_ACTIVATED
+        );
 
         return response()->json([
             'message' => 'Annonce boostée avec succès.',

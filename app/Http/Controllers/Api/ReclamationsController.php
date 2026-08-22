@@ -13,9 +13,16 @@ class ReclamationsController extends Controller
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
 
+    // Injected, matching your real NotificationService (instance-based, not static)
+    protected NotificationService $notifications;
+
+    public function __construct(NotificationService $notifications)
+    {
+        $this->notifications = $notifications;
+    }
+
     /**
      * GET /api/my-reclamations
-     * The current user's own tickets.
      */
     public function myReclamations(Request $request)
     {
@@ -34,7 +41,6 @@ class ReclamationsController extends Controller
 
     /**
      * POST /api/reclamations
-     * Any authenticated user files a complaint/support ticket.
      * Body: { "IdCause": 3, "Subject": "...", "Description": "..." }
      */
     public function store(Request $request)
@@ -58,10 +64,8 @@ class ReclamationsController extends Controller
             'UpdatedAt'   => $now,
         ]);
 
-        // Notify every admin immediately — this is the "notification manages
-        // anything in the project" principle: Réclamations doesn't build its
-        // own alert logic, it just calls the shared service.
-        NotificationService::notifyAdmins(
+        // NOTE: sendToAdmins (matches your real service), not notifyAdmins
+        $this->notifications->sendToAdmins(
             'New complaint received',
             $user->Username . ' filed a ticket: "' . $data['Subject'] . '"',
             'reclamation'
@@ -72,7 +76,6 @@ class ReclamationsController extends Controller
 
     /**
      * GET /api/reclamations/{id}
-     * Owner or admin only.
      */
     public function show(Request $request, $id)
     {
@@ -87,7 +90,6 @@ class ReclamationsController extends Controller
 
     /**
      * GET /api/reclamations (admin)
-     * Full list, filterable by Status.
      */
     public function index(Request $request)
     {
@@ -105,7 +107,6 @@ class ReclamationsController extends Controller
     /**
      * PATCH /api/reclamations/{id}/reply (admin)
      * Body: { "AdminReply": "...", "Status": "resolved" }
-     * Replying automatically notifies the user who filed the ticket.
      */
     public function reply(Request $request, $id)
     {
@@ -124,7 +125,7 @@ class ReclamationsController extends Controller
         $reclamation->UpdatedAt = now();
         $reclamation->save();
 
-        NotificationService::send(
+        $this->notifications->send(
             $reclamation->IdUser,
             'Your ticket was answered',
             'Re: "' . $reclamation->Subject . '" — ' . $data['AdminReply'],
@@ -136,7 +137,6 @@ class ReclamationsController extends Controller
 
     /**
      * PATCH /api/reclamations/{id}/status (admin)
-     * Change status without necessarily writing a reply (e.g. open -> in_progress).
      */
     public function updateStatus(Request $request, $id)
     {

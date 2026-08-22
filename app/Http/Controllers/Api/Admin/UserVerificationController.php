@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Users;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class UserVerificationController extends Controller
 {
+    public function __construct(private NotificationService $notifications) {}
+
     /**
      * IsBusinessAccount is the real column that tells us the document
      * type. There is no "IdentityDocumentType" column - using it always
@@ -96,6 +99,13 @@ class UserVerificationController extends Controller
             'VerifiedBy' => $request->user()->IdUser,
         ]);
 
+        $this->notifications->send(
+            $user->IdUser,
+            'Compte vérifié',
+            'Félicitations, votre document d\'identité a été validé. Votre compte est maintenant vérifié.',
+            NotificationService::TYPE_VERIFICATION_OK
+        );
+
         return response()->json([
             'message' => 'User has been verified.',
             'data' => [
@@ -138,6 +148,13 @@ class UserVerificationController extends Controller
             'VerifiedAt' => null,
             'VerifiedBy' => null,
         ]);
+
+        $this->notifications->send(
+            $user->IdUser,
+            'Document rejeté',
+            $request->input('reason') ?? 'Votre document d\'identité a été refusé. Merci de le soumettre à nouveau.',
+            NotificationService::TYPE_VERIFICATION_KO
+        );
 
         return response()->json([
             'message' => 'Verification request rejected. User must resubmit.',

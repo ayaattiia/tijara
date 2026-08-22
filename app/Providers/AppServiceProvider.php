@@ -28,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
 
         Broadcast::routes(['middleware' => ['auth:api']]);
 
+        \App\Models\Products::observe(\App\Observers\FollowerNotificationObserver::class);
+        \App\Models\Ads::observe(\App\Observers\FollowerNotificationObserver::class);
+        \App\Models\Deals::observe(\App\Observers\FollowerNotificationObserver::class);
+
         $this->routes(function () {
 
             Route::middleware('api')

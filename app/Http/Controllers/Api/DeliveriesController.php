@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Deliveries;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class DeliveriesController extends Controller
@@ -12,6 +13,8 @@ class DeliveriesController extends Controller
     private const DEFAULT_PER_PAGE = 10;
     private const MIN_PER_PAGE = 0;
     private const MAX_PER_PAGE = 50;
+
+    public function __construct(private NotificationService $notifications) {}
 
     public function index(Request $request)
     {
@@ -123,6 +126,8 @@ class DeliveriesController extends Controller
         $delivery->DeliveredAt = now();
         $delivery->save();
 
+        $this->notifyBuyer($delivery, 'Colis livré', 'Votre colis a été livré avec succès.');
+
         return response()->json([
             'success' => true,
             'message' => 'Delivery marked as delivered.',
@@ -159,11 +164,36 @@ class DeliveriesController extends Controller
 
         $delivery->save();
 
+        $this->notifyBuyer(
+            $delivery,
+            'Mise à jour de livraison',
+            "Le statut de votre colis est maintenant : {$delivery->Status}."
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Delivery status updated.',
             'data' => $delivery
         ]);
+    }
+
+    /**
+     * Retrouve l'acheteur (Orders.IdUser) via la livraison -> commande,
+     * et lui envoie une notification. Ne fait rien silencieusement si la
+     * commande liée n'existe plus (ne doit jamais faire échouer l'appel
+     * principal pour un souci de notification).
+     */
+    private function notifyBuyer(Deliveries $delivery, string $title, string $description): void
+    {
+        $order = \App\Models\Orders::find($delivery->IdOrder);
+        if ($order) {
+            $this->notifications->send(
+                $order->IdUser,
+                $title,
+                $description,
+                NotificationService::TYPE_DELIVERY_UPDATE
+            );
+        }
     }
     /**
      * Resolve the per_page value from the request, falling back to a default

@@ -76,7 +76,6 @@ use App\Http\Controllers\Api\ConversationController;
 
 
 
-
 /*
 |--------------------------------------------------------------------------
 | ROLES DE LA PLATEFORME TIJARA
@@ -561,6 +560,8 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
         PremiumAdminController::class,
         'expire'
     ]);
+
+
 
     // ---- Reclamations: admin moderation ----
     Route::get('/reclamations', [ReclamationsController::class, 'index']);

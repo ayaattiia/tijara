@@ -36,5 +36,4 @@ class Reports extends Model
     {
         return $this->belongsTo(\App\Models\Products::class, 'IdProduct', 'IdProduct');
     }
-
 }

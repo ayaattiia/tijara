@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\ProductBoosts;
 use App\Models\Products;
 use App\Services\BoostPurchaseService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class ProductBoostController extends Controller
 {
-    public function __construct(private BoostPurchaseService $boostPurchase) {}
+    public function __construct(
+        private BoostPurchaseService $boostPurchase,
+        private NotificationService $notifications
+    ) {}
 
     /**
      * POST /api/products/{product}/boost
@@ -47,6 +51,13 @@ class ProductBoostController extends Controller
             'EndDate'    => $result['end'],
             'Active'     => true,
         ]);
+
+        $this->notifications->send(
+            $request->user()->IdUser,
+            'Boost activé',
+            "\"{$item->TitleProduct}\" est boosté jusqu'au {$result['end']->format('d/m/Y')}.",
+            NotificationService::TYPE_BOOST_ACTIVATED
+        );
 
         return response()->json([
             'message' => 'Produit boosté avec succès.',
