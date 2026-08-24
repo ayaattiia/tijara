@@ -254,11 +254,15 @@ class AuthController extends Controller
 
             $token = $user->createToken('facebook')->accessToken;
 
-            return redirect(
-                env('FRONTEND_URL') .
-                    '/login-success?token=' .
-                    urlencode($token)
-            );
+            // TEMPORARY: returning JSON instead of redirecting to the frontend
+            // so the backend flow can be tested without Angular running.
+            // Revert to redirect(env('FRONTEND_URL') . '/login-success?token=' . urlencode($token))
+            // once the frontend is ready.
+            return response()->json([
+                'message' => 'Facebook authentication successful.',
+                'token'   => $token,
+                'user'    => $user,
+            ]);
         } catch (Exception $e) {
 
             return response()->json([

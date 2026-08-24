@@ -23,12 +23,16 @@ class ChatMessageAttachments extends Model
         'Active',
     ];
 
-  
+
     /**
      * Relation vers le message.
      */
     public function message()
     {
-        return $this->belongsTo(ChatMessages::class, 'IdChatMessage', 'IdChatMessage');
+        return $this->belongsTo(
+            Message::class,
+            'IdChatMessage',
+            'id'
+        );
     }
 }

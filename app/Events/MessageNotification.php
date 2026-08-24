@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Events;
 
 use App\Models\Message;
@@ -25,7 +26,7 @@ class MessageNotification implements ShouldBroadcast
         return [
             'conversation_id' => $this->message->conversation_id,
             'message_id' => $this->message->id,
-            'body' => $this->message->body,
+            'body' => $this->message->content,
             'created_at' => $this->message->created_at,
         ];
     }

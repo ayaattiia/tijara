@@ -122,14 +122,15 @@ use App\Http\Controllers\Api\ConversationController;
 // routes/web.php ou routes/api.php
 Route::middleware('auth:api')->group(function () {
     Route::post('/chat/messages', [ChatController::class, 'store'])->name('chat.store');
-    
+
     Route::get('/chat/{room?}', [ChatController::class, 'index'])->name('chat.index');
 
-    //conversations
-    Route::get('/conversations', [ConversationController::class, 'index']);
-    Route::post('/conversations', [ConversationController::class, 'store']);
-    Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages']);
-    Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage']);
+    // ---- Conversations / messages (acheteur <-> vendeur) ----
+    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
+    Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages'])->name('conversations.messages');
+    Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage'])->name('messages.store');
+    Route::delete('/conversations/{conversation}/messages/{message}', [ConversationController::class, 'destroyMessage'])->name('messages.destroy');
 });
 
 // ---- Authentification ----

@@ -10,14 +10,13 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__ . '/../routes/web.php',
         commands: __DIR__ . '/../routes/console.php',
         api: __DIR__ . '/../routes/api.php',
-        channels: __DIR__ . '/../routes/channels.php',   // 👈 ajoute cette ligne
+        channels: __DIR__ . '/../routes/channels.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'entreprise' => \App\Http\Middleware\EnsureUserIsEntreprise::class,
-
         ]);
 
         // This is an API-only backend with no "login" web route. Without this,
@@ -27,10 +26,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // route('login') before the 401 JSON handler below ever runs.
         $middleware->redirectGuestsTo(fn() => null);
     })
-
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
+            if ($request->is('api/*') || $request->is('broadcasting/*') || $request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
         });
